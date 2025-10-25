@@ -1,0 +1,174 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- USERS ----------
+model User {
+  userId       Int       @id @default(autoincrement())
+  username     String    @unique
+  passwordHash String    @map("password_hash")
+  fullName     String?   @map("full_name")
+  role         String    @default("operator")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  scans        Scan[]
+
+  @@map("users")
+}
+
+// ---------- PRODUCTS ----------
+model Product {
+  productId    Int       @id @default(autoincrement())
+  sku          String    @unique
+  name         String
+  category     String?
+  brand        String?
+  unitPrice    Decimal?  @map("unit_price")
+  imageUrl     String?   @map("image_url")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  flightRequirements FlightRequirement[]
+  scanItems          ScanItem[]
+
+  @@map("products")
+}
+
+// ---------- FLIGHTS ----------
+model Flight {
+  flightId     Int       @id @default(autoincrement())
+  flightNumber String    @unique @map("flight_number")
+  departureTime DateTime @map("departure_time")
+  origin       String
+  destination  String
+  status       String    @default("scheduled")
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  trolleys           Trolley[]
+  flightRequirements FlightRequirement[]
+
+  @@map("flights")
+}
+
+// ---------- TROLLEYS ----------
+model Trolley {
+  trolleyId    Int       @id @default(autoincrement())
+  trolleyCode  String    @unique @map("trolley_code")
+  status       String    @default("empty")
+  totalShelves Int       @default(3) @map("total_shelves")
+  assignedAt   DateTime? @map("assigned_at")
+
+  // Relations
+  flightId     Int?
+  flight       Flight?   @relation(fields: [flightId], references: [flightId])
+
+  shelves      Shelf[]
+  scans        Scan[]
+  flightRequirements FlightRequirement[]
+
+  @@map("trolleys")
+}
+
+// ---------- SHELVES ----------
+model Shelf {
+  shelfId      Int       @id @default(autoincrement())
+  shelfNumber  Int       @map("shelf_number")
+  qrCode       String?   @unique @map("qr_code")
+  position     String?
+
+  // Relations
+  trolleyId    Int
+  trolley      Trolley   @relation(fields: [trolleyId], references: [trolleyId], onDelete: Cascade)
+  scans        Scan[]
+
+  @@unique([trolleyId, shelfNumber], name: "unique_shelf_per_trolley")
+  @@map("shelves")
+}
+
+// ---------- FLIGHT REQUIREMENTS ----------
+model FlightRequirement {
+  requirementId    Int      @id @default(autoincrement())
+  expectedQuantity Int      @map("expected_quantity")
+  priority         String   @default("normal")
+
+  // Relations
+  flightId   Int
+  trolleyId  Int
+  productId  Int
+
+  flight     Flight   @relation(fields: [flightId], references: [flightId])
+  trolley    Trolley  @relation(fields: [trolleyId], references: [trolleyId])
+  product    Product  @relation(fields: [productId], references: [productId])
+
+  @@unique([flightId, trolleyId, productId], name: "unique_requirement")
+  @@map("flight_requirements")
+}
+
+// ---------- SCANS ----------
+model Scan {
+  scanId       Int       @id @default(autoincrement())
+  imagePath    String    @map("image_path")
+  scannedAt    DateTime  @default(now()) @map("scanned_at")
+  status       String    @default("processing")
+  metadata     Json?
+
+  // Relations
+  trolleyId    Int?
+  shelfId      Int?
+  scannedBy    Int?
+
+  trolley      Trolley? @relation(fields: [trolleyId], references: [trolleyId])
+  shelf        Shelf?   @relation(fields: [shelfId], references: [shelfId])
+  user         User?    @relation(fields: [scannedBy], references: [userId])
+  scanItems    ScanItem[]
+
+  @@map("scans")
+}
+
+// ---------- SCAN ITEMS ----------
+model ScanItem {
+  scanItemId       Int       @id @default(autoincrement())
+  detectedQuantity Int       @map("detected_quantity")
+  confidence       Decimal   @db.Decimal(5, 4)
+  notes            String?
+
+  // Relations
+  scanId     Int
+  productId  Int
+  scan       Scan     @relation(fields: [scanId], references: [scanId], onDelete: Cascade)
+  product    Product  @relation(fields: [productId], references: [productId])
+  alerts     Alert[]
+
+  @@map("scan_items")
+}
+
+// ---------- ALERTS ----------
+model Alert {
+  alertId     Int       @id @default(autoincrement())
+  alertType   String    @map("alert_type")
+  severity    String    @default("warning")
+  message     String
+  status      String    @default("active")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  resolvedAt  DateTime? @map("resolved_at")
+
+  // Relations
+  scanItemId  Int
+  scanItem    ScanItem  @relation(fields: [scanItemId], references: [scanItemId])
+
+  @@map("alerts")
+}
