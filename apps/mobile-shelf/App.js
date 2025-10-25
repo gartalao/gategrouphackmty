@@ -3,6 +3,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import SelectPhoneScreen from './screens/SelectPhoneScreen';
 import ManualCameraScreen from './screens/ManualCameraScreen';
+import AutoCameraScreen from './screens/AutoCameraScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -24,6 +25,11 @@ export default function App() {
           name="ManualCamera" 
           component={ManualCameraScreen}
           options={{ title: 'Modo Manual' }}
+        />
+        <Stack.Screen 
+          name="AutoCamera" 
+          component={AutoCameraScreen}
+          options={{ title: 'Modo Automático' }}
         />
       </Stack.Navigator>
     </NavigationContainer>
