@@ -11,6 +11,11 @@ const PRODUCT_COOLDOWN_MS = parseInt(process.env.PRODUCT_COOLDOWN_MS || '1200', 
 // Cooldown tracking: { scanId_productId: lastDetectedTimestamp }
 const detectionCooldowns = new Map();
 
+// Rate limit tracking for Gemini API (10 RPM limit)
+const geminiRequestTimestamps = [];
+const GEMINI_RPM_LIMIT = 10;
+const GEMINI_WINDOW_MS = 60000; // 1 minuto
+
 /**
  * Verify JWT token from handshake
  */
@@ -42,6 +47,34 @@ function isInCooldown(scanId, productId) {
 function setCooldown(scanId, productId) {
   const key = `${scanId}_${productId}`;
   detectionCooldowns.set(key, Date.now());
+}
+
+/**
+ * Check if we're within Gemini rate limit
+ */
+function canMakeGeminiRequest() {
+  const now = Date.now();
+  
+  // Remove timestamps older than 1 minute
+  while (geminiRequestTimestamps.length > 0 && now - geminiRequestTimestamps[0] > GEMINI_WINDOW_MS) {
+    geminiRequestTimestamps.shift();
+  }
+  
+  const requestsInLastMinute = geminiRequestTimestamps.length;
+  const canRequest = requestsInLastMinute < GEMINI_RPM_LIMIT;
+  
+  if (!canRequest) {
+    console.warn(`[WS] ⚠️ Rate limit alcanzado: ${requestsInLastMinute}/${GEMINI_RPM_LIMIT} requests en el último minuto`);
+  }
+  
+  return canRequest;
+}
+
+/**
+ * Track Gemini request
+ */
+function trackGeminiRequest() {
+  geminiRequestTimestamps.push(Date.now());
 }
 
 /**
@@ -158,7 +191,15 @@ function initializeVideoStream(io) {
     // EVENT: frame
     socket.on('frame', async (payload) => {
       try {
+        console.log('[WS] 📥 Frame recibido del cliente');
         const { scanId, frameId, jpegBase64 } = payload;
+        
+        console.log('[WS] 📊 Datos del frame:', {
+          scanId,
+          frameId,
+          base64Length: jpegBase64?.length || 0,
+          timestamp: Date.now()
+        });
 
         // Get scan to verify it exists
         const scan = await prisma.scan.findUnique({
@@ -167,9 +208,11 @@ function initializeVideoStream(io) {
         });
 
         if (!scan || scan.status !== 'recording') {
-          console.warn(`[WS] Invalid or ended scan: ${scanId}`);
+          console.warn(`[WS] ❌ Invalid or ended scan: ${scanId}`);
           return;
         }
+        
+        console.log('[WS] ✅ Scan válido, obteniendo catálogo...');
 
         // Get product catalog
         const products = await prisma.product.findMany({
@@ -180,16 +223,32 @@ function initializeVideoStream(io) {
             detectionKeywords: true,
           },
         });
+        
+        console.log('[WS] 📦 Productos en catálogo:', products.length);
+
+        // Check rate limit before calling Gemini
+        if (!canMakeGeminiRequest()) {
+          console.warn('[WS] ⏸️ Frame descartado por rate limit de Gemini');
+          return;
+        }
+
+        // Track request
+        trackGeminiRequest();
 
         // Analyze frame with Gemini
+        console.log('[WS] 🤖 Llamando a Gemini para análisis...');
         const result = await analyzeFrame(jpegBase64, products, {
           threshold: CONFIDENCE_THRESHOLD,
         });
+        
+        console.log('[WS] 🔍 Resultado de Gemini:', result);
 
         if (!result.detected || !result.product_name) {
-          // No detection or below threshold
+          console.log('[WS] ⚪ No se detectó producto o confianza baja');
           return;
         }
+        
+        console.log('[WS] 🎯 Producto detectado:', result.product_name, 'Confianza:', result.confidence);
 
         // Find matching product by name (exact match, case-insensitive)
         const product = products.find(

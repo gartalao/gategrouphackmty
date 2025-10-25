@@ -2,8 +2,12 @@ const fetch = require('node-fetch');
 
 const GEMINI_FAKE = process.env.GEMINI_FAKE === '1';
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
-const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-robotics-er-1.5-preview';
+// FORZAR MODELO CORRECTO
+const GEMINI_MODEL = 'gemini-robotics-er-1.5-preview';
 const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+
+console.log('[Gemini] Configurado con modelo:', GEMINI_MODEL);
+console.log('[Gemini] URL:', GEMINI_URL);
 
 /**
  * Construye el prompt para Gemini Robotics-ER 1.5
@@ -16,26 +20,38 @@ function buildPrompt(catalog) {
     })
     .join('\n');
 
-  return `Eres un sistema de visión EN TIEMPO REAL para catering aéreo.
+  return `Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
 
-TAREA:
-Dado este FRAME de un operador cargando un trolley, decide si el operador está METIENDO alguno de los siguientes productos. Detecta por apariencia visual y texto visible. NO uses ni menciones SKUs, QR o códigos de barras.
-
-PRODUCTOS:
+PRODUCTOS DISPONIBLES:
 ${productList}
 
-REGLAS:
-- Responde detected:true SOLO si la acción visible es "placing_in_trolley" (producto entrando al trolley por la mano del operador).
-- Si el producto ya está en el trolley o solo se sostiene, responde detected:false.
-- Devuelve a lo sumo UN producto por frame.
-- Si puedes, devuelve también "box_2d": [ymin, xmin, ymax, xmax] normalizado 0-1000 para el producto detectado.
-- Prohíbe code fences. Respuesta JSON ESTRICTA y SOLO JSON.
+TAREA: Detecta SI HAY algún producto visible en la imagen.
 
-FORMATO:
-{ "detected": true|false, "product_name": "<nombre_exacto_del_producto>", "confidence": 0.0-1.0, "action": "placing_in_trolley", "box_2d": [ymin, xmin, ymax, xmax] }
+MÉTODO DE DETECCIÓN:
+1. Busca PRIMERO por características visuales distintivas:
+   - Coca-Cola 350ml: Lata ROJA con logo blanco
+   - Coca-Cola Zero 350ml: Lata NEGRA con logo plateado
+   - Sprite 350ml: Lata VERDE/TRANSPARENTE con logo verde-azul
+   - Pepsi 350ml: Lata AZUL con logo rojo/blanco
+   - Agua Natural 500ml: Botella TRANSPARENTE
+   - Lays Original 100gr: Bolsa AMARILLA brillante
+   - Lays Queso 100gr: Bolsa NARANJA
+   - Doritos Nacho 100gr: Bolsa ROJA/NARANJA con triángulos
 
-Si no detectas producto:
-{ "detected": false }`.trim();
+2. Busca texto en etiquetas: "Coca-Cola", "Sprite", "Pepsi", "Lays", "Doritos"
+3. Identifica la forma: lata cilíndrica, botella, bolsa de papas
+4. Si el producto está siendo colocado en el trolley, marca: "action": "placing_in_trolley"
+
+FORMATO DE RESPUESTA (SOLO JSON, SIN MARKDOWN):
+{"detected": true, "product_name": "Coca-Cola 350ml", "confidence": 0.95, "action": "placing_in_trolley", "box_2d": [ymin, xmin, ymax, xmax]}
+
+Si NO ves ningún producto:
+{"detected": false}
+
+IMPORTANTE: 
+- Usa el nombre EXACTO del producto de la lista
+- Solo detecta si estás seguro (confidence >= 0.70)
+- Responde SOLO con JSON, sin explicaciones`.trim();
 }
 
 /**
@@ -78,11 +94,17 @@ function safeParseDetection(text) {
  * Analiza un frame con Gemini Robotics-ER 1.5 REST API
  */
 async function analyzeFrameReal(jpegBase64, catalog, opts) {
+  console.log('[Gemini] 🚀 Iniciando análisis con Gemini API');
+  console.log('[Gemini] 📦 Catálogo:', catalog.length, 'productos');
+  console.log('[Gemini] 📊 Base64 length:', jpegBase64.length);
+  
   if (!GEMINI_API_KEY) {
+    console.error('[Gemini] ❌ GEMINI_API_KEY not configured');
     throw new Error('GEMINI_API_KEY not configured');
   }
 
   const prompt = buildPrompt(catalog);
+  console.log('[Gemini] 📝 Prompt generado:', prompt.substring(0, 200) + '...');
 
   const requestBody = {
     contents: [
@@ -109,6 +131,7 @@ async function analyzeFrameReal(jpegBase64, catalog, opts) {
   };
 
   try {
+    console.log('[Gemini] 📡 Enviando request a:', GEMINI_URL);
     const response = await fetch(`${GEMINI_URL}?key=${GEMINI_API_KEY}`, {
       method: 'POST',
       headers: {
@@ -117,43 +140,60 @@ async function analyzeFrameReal(jpegBase64, catalog, opts) {
       body: JSON.stringify(requestBody),
     });
 
+    console.log('[Gemini] 📥 Response status:', response.status);
+
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('[Gemini] API error:', response.status, errorText);
-      return { detected: false };
+      
+      if (response.status === 429) {
+        console.error('[Gemini] ⚠️ RATE LIMIT EXCEEDED (429) - Demasiadas peticiones');
+        console.error('[Gemini] 💡 Reduce la frecuencia de frames o espera antes de enviar el siguiente');
+      } else if (response.status === 404) {
+        console.error('[Gemini] ❌ Model NOT FOUND (404) - Verifica el nombre del modelo');
+      } else {
+        console.error('[Gemini] ❌ API error:', response.status, errorText.substring(0, 500));
+      }
+      
+      return { detected: false, error: response.status };
     }
 
     const json = await response.json();
+    console.log('[Gemini] 📦 JSON response:', JSON.stringify(json).substring(0, 500));
 
     // Extraer texto de la respuesta
     const text =
       json?.candidates?.[0]?.content?.parts?.map((p) => p.text).join('') || '';
 
+    console.log('[Gemini] 📄 Texto extraído:', text.substring(0, 300));
+
     if (!text) {
-      console.warn('[Gemini] Empty response from API');
+      console.warn('[Gemini] ⚠️ Empty response from API');
       return { detected: false };
     }
 
     // Parseo robusto
     const parsed = safeParseDetection(text);
+    console.log('[Gemini] 🔍 Parsed result:', JSON.stringify(parsed));
 
     // Validar threshold
     if (parsed.detected && parsed.confidence && parsed.confidence < opts.threshold) {
       console.log(
-        `[Gemini] Detection below threshold: ${parsed.confidence} < ${opts.threshold}`
+        `[Gemini] ⚪ Detection below threshold: ${parsed.confidence} < ${opts.threshold}`
       );
       return { detected: false };
     }
 
     // Validar acción
     if (parsed.detected && parsed.action !== 'placing_in_trolley') {
-      console.log(`[Gemini] Wrong action: ${parsed.action}, expected placing_in_trolley`);
+      console.log(`[Gemini] ⚠️ Wrong action: ${parsed.action}, expected placing_in_trolley`);
       return { detected: false };
     }
 
+    console.log('[Gemini] ✅ Detección válida:', parsed);
     return parsed;
   } catch (error) {
-    console.error('[Gemini] Error calling API:', error.message);
+    console.error('[Gemini] ❌ Error calling API:', error.message);
+    console.error('[Gemini] Stack:', error.stack);
     return { detected: false };
   }
 }

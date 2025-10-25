@@ -48,8 +48,14 @@ export class WebSocketService {
     return new Promise((resolve, reject) => {
       // Extraer solo la URL base (sin /ws al final si existe)
       const baseUrl = this.config.url.replace(/\/ws$/i, '');
+      const fullUrl = `${baseUrl}/ws`;
       
-      this.socket = io(`${baseUrl}/ws`, {
+      console.log('[WebSocket] 🔌 Iniciando conexión...');
+      console.log('[WebSocket] 📍 URL base:', baseUrl);
+      console.log('[WebSocket] 📍 URL completa:', fullUrl);
+      console.log('[WebSocket] 🔑 Auth:', this.config.token ? 'Con token' : 'Sin token');
+      
+      this.socket = io(fullUrl, {
         auth: this.config.token ? { token: this.config.token } : {},
         transports: ['websocket', 'polling'],
         reconnection: true,
@@ -57,21 +63,27 @@ export class WebSocketService {
         reconnectionAttempts: 5,
       });
 
+      console.log('[WebSocket] 🎯 Socket.IO creado, esperando conexión...');
+
       this.socket.on('connect', () => {
-        console.log('[WebSocket] ✅ Conectado a', baseUrl);
+        console.log('[WebSocket] ✅ CONECTADO exitosamente a', fullUrl);
+        console.log('[WebSocket] 🆔 Socket ID:', this.socket?.id);
+        console.log('[WebSocket] 🚀 Transporte:', this.socket?.io?.engine?.transport?.name);
         this.isConnected = true;
         this.config.onConnect?.();
         resolve();
       });
 
       this.socket.on('disconnect', (reason) => {
-        console.log('[WebSocket] ❌ Desconectado:', reason);
+        console.log('[WebSocket] ❌ DESCONECTADO:', reason);
         this.isConnected = false;
         this.config.onDisconnect?.();
       });
 
       this.socket.on('connect_error', (error) => {
-        console.error('[WebSocket] ❌ Error de conexión:', error);
+        console.error('[WebSocket] ❌ ERROR DE CONEXIÓN:', error);
+        console.error('[WebSocket] 📝 Mensaje:', error.message);
+        console.error('[WebSocket] 📝 Tipo:', error.type);
         this.config.onError?.(error);
         reject(error);
       });
@@ -123,12 +135,24 @@ export class WebSocketService {
    */
   sendFrame(params: FrameParams): void {
     if (!this.socket || !this.isConnected) {
-      console.warn('[WebSocket] ⚠️ No conectado, no se puede enviar frame');
+      console.warn('[WebSocket] ⚠️ No conectado, no se puede enviar frame', {
+        socket: !!this.socket,
+        isConnected: this.isConnected
+      });
       return;
     }
 
+    console.log('[WebSocket] 📤 Enviando frame al backend:', {
+      scanId: params.scanId,
+      frameId: params.frameId,
+      base64Length: params.jpegBase64.length,
+      timestamp: params.ts
+    });
+
     // Enviar sin esperar respuesta (fire and forget)
     this.socket.emit('frame', params);
+    
+    console.log('[WebSocket] ✅ Frame emitido exitosamente');
   }
 
   /**

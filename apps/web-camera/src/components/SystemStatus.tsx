@@ -64,7 +64,7 @@ export const SystemStatus: React.FC<SystemStatusProps> = ({
       case 'sending':
         return 'Enviando frame...';
       default:
-        return 'Streaming directo';
+        return 'Desconectado - WebSocket al servidor';
     }
   };
 

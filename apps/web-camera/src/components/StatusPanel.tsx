@@ -133,35 +133,25 @@ export const StatusPanel: React.FC<StatusPanelProps> = ({
         </div>
       </div>
 
-      {/* Controles */}
+      {/* Controles - SOLO Iniciar/Detener */}
       <div className="mt-4 pt-3 border-t border-gray-700">
         <div className="flex space-x-2">
           {!isRecording ? (
             <button
               onClick={onStartRecording}
-              disabled={!isConnected}
-              className="flex-1 flex items-center justify-center space-x-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-500 disabled:cursor-not-allowed px-4 py-2 rounded-lg transition-colors"
+              className="flex-1 flex items-center justify-center space-x-2 bg-green-600 hover:bg-green-700 px-4 py-3 rounded-lg transition-colors font-semibold text-lg"
             >
-              <Play className="w-4 h-4" />
-              <span>Iniciar</span>
+              <Play className="w-5 h-5" />
+              <span>▶ Iniciar Streaming</span>
             </button>
           ) : (
-            <>
-              <button
-                onClick={onPauseRecording}
-                className="flex-1 flex items-center justify-center space-x-2 bg-yellow-600 hover:bg-yellow-700 px-4 py-2 rounded-lg transition-colors"
-              >
-                {isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
-                <span>{isPaused ? 'Reanudar' : 'Pausar'}</span>
-              </button>
-              <button
-                onClick={onStopRecording}
-                className="flex-1 flex items-center justify-center space-x-2 bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg transition-colors"
-              >
-                <Square className="w-4 h-4" />
-                <span>Detener</span>
-              </button>
-            </>
+            <button
+              onClick={onStopRecording}
+              className="flex-1 flex items-center justify-center space-x-2 bg-red-600 hover:bg-red-700 px-4 py-3 rounded-lg transition-colors font-semibold text-lg"
+            >
+              <Square className="w-5 h-5" />
+              <span>⏹ Detener Streaming</span>
+            </button>
           )}
         </div>
       </div>

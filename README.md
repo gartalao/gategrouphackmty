@@ -1,179 +1,238 @@
-# Smart Trolley (phone-powered) — Documentación del MVP
+# 🎥 Smart Trolley - Detección en Tiempo Real con Gemini
+
+Sistema de detección visual de productos en tiempo real para trolleys de catering aéreo usando **Gemini Robotics-ER 1.5**.
 
 ---
 
-## 🔄 IMPORTANTE: Transformación del Proyecto en Curso
+## 🚀 Inicio Rápido
 
-Este proyecto está en proceso de transformación de un sistema basado en **fotos estáticas con OpenAI** a un sistema de **video en tiempo real con Google Gemini API**.
+### 1. Instalar Dependencias
+```bash
+# Backend
+cd apps/api && npm install
 
-**📘 Para información sobre la transformación, consulta**: [`TRANSFORMACION_README.md`](./TRANSFORMACION_README.md)
-
-**Documentos de transformación disponibles**:
-- [`GUIA_DE_TRANSFORMACION.md`](./GUIA_DE_TRANSFORMACION.md) - Guía completa de implementación
-- [`TRANSFORMATION_PROMPT.md`](./TRANSFORMATION_PROMPT.md) - Prompt técnico para Cursor AI
-- [`RESUMEN_EJECUTIVO_CAMBIOS.md`](./RESUMEN_EJECUTIVO_CAMBIOS.md) - Resumen ejecutivo
-- [`META_PROMPT_PARA_CHATGPT.md`](./META_PROMPT_PARA_CHATGPT.md) - Template reutilizable
-
----
-
-## Resumen Ejecutivo
-
-### El Problema
-El proceso de **Pick & Pack** en operaciones de fulfillment es manual, contrarreloj y propenso a errores. Los operadores deben preparar trolleys (carritos) con productos específicos según los requisitos de cada vuelo, enfrentando:
-- **Faltantes**: productos que debían estar pero no se incluyeron
-- **Excedentes**: productos que no se solicitaron pero se agregaron
-- **Presión de tiempo**: ventanas cortas para preparar y despachar
-- **Falta de trazabilidad**: difícil auditar qué salió mal y dónde
-
-### Objetivo del Proyecto
-**"Make Pick & Pack smarter, faster, and more sustainable"** mediante visión por computadora.
-
-Desarrollar un MVP que permita:
-1. Captura automática de imágenes de trolleys en movimiento
-2. Detección de SKUs y cantidades mediante Visión LLM
-3. Comparación en tiempo real contra requisitos planificados
-4. Alertas inmediatas de discrepancias
-5. Dashboard con KPIs operativos y de exactitud
-
-### Enfoque Técnico
-
-El sistema utiliza:
-- **3 teléfonos Android fijos** (uno por repisa del trolley)
-- **Captura automática** de foto cada 5 segundos
-- **Backend con Visión LLM** (modelo multimodal) que analiza imágenes y retorna JSON estructurado
-- **Comparación automática** contra `flight_requirements` en base de datos
-- **Dashboard web** con KPIs en tiempo real y alertas visuales
-- **Comunicación en vivo** vía WebSocket/SSE
-
-### Tecnologías Clave
-
-| Componente | Tecnología |
-|------------|-----------|
-| **Web App** | React + Vite + Gemini Live API (Browser-based) |
-| **Backend** | Node.js + Express + Neon Postgres |
-| **Visión LLM** | Modelo multimodal con salida JSON Schema |
-| **Web Dashboard** | Next.js + Tailwind CSS |
-| **Tiempo Real** | WebSocket / Server-Sent Events |
-| **Storage** | Local filesystem o S3-compatible |
-| **Base de Datos** | PostgreSQL (Neon serverless) |
-
-### Arquitectura de Alto Nivel
-
-```mermaid
-graph LR
-    A[📱 Android Shelf 1] -->|POST /scan| B[🔧 API Backend]
-    C[📱 Android Shelf 2] -->|POST /scan| B
-    D[📱 Android Shelf 3] -->|POST /scan| B
-    B -->|Almacena imagen| E[(💾 Storage)]
-    B -->|Consulta LLM| F[🤖 Visión LLM]
-    F -->|JSON items| B
-    B -->|Guarda scan| G[(🗄️ Neon Postgres)]
-    B -->|Calcula diffs| G
-    B -->|Emite eventos| H[🌐 Dashboard Web]
-    H -->|WebSocket| B
+# Web Camera
+cd apps/web-camera && npm install
 ```
 
-### Estructura de este Repositorio
+### 2. Configurar Variables de Entorno
 
-```
-/
-├─ docs/              → Documentación técnica y operativa
-│  ├─ architecture/   → Diagramas, modelos de datos, ADRs
-│  ├─ api/            → Contratos de API y schemas
-│  ├─ flows/          → Flujos operativos y técnicos
-│  ├─ kpis/           → Métricas y KPIs del sistema
-│  ├─ setup/          → Guías de configuración por componente
-│  ├─ security-privacy/ → Privacidad, costos, retención
-│  ├─ ops/            → Hardware, montaje, iluminación
-│  ├─ demo/           → Script de demostración y criterios de éxito
-│  ├─ risk/           → Registro de riesgos y mitigaciones
-│  ├─ planning/       → Roles, tareas, milestones para 36h
-│  └─ references/     → Guías de catálogo SKU y configuración
-├─ apps/              → READMEs de cada aplicación (sin código)
-└─ packages/          → README de componentes compartidos
+**`apps/api/.env`**:
+```env
+DATABASE_URL="tu_conexion_neon_o_postgres"
+GEMINI_API_KEY="tu_api_key_aqui"
+PORT=3001
+DETECTION_CONFIDENCE_THRESHOLD=0.70
+PRODUCT_COOLDOWN_MS=1200
+JWT_SECRET=any_secret_key
 ```
 
-### Navegación Rápida
+**`apps/web-camera/.env`**:
+```env
+VITE_WS_URL=ws://localhost:3001
+VITE_API_URL=http://localhost:3001
+```
 
-#### 📋 Inicio
-- [Visión General del Proyecto](docs/overview.md)
-- [Glosario de Términos](docs/glossary.md)
+### 3. Migrar Base de Datos
+```bash
+npx prisma db push
+node seed-products.js
+```
 
-#### 🏗️ Arquitectura
-- [Arquitectura de Contexto](docs/architecture/context-architecture.md)
-- [Modelo de Datos](docs/architecture/data-model.md)
-- [Secuencia de Scan](docs/architecture/sequence-scan.md)
-- [Decisiones de Arquitectura (ADRs)](docs/architecture/decisions-adr-index.md)
+### 4. Ejecutar el Sistema
 
-#### 🔌 API y Contratos
-- [Contratos de API](docs/api/contracts.md)
-- [JSON Schema para Visión LLM](docs/api/vision-json-schema.md)
+**Terminal 1 - Backend:**
+```bash
+cd apps/api
+npm run dev
+```
 
-#### 🔄 Flujos
-- [Flujo Operativo](docs/flows/operational.md)
-- [Flujo Técnico de Scan](docs/flows/technical-scan.md)
+**Terminal 2 - Web Camera:**
+```bash
+cd apps/web-camera
+npm run dev
+```
 
-#### 📊 Métricas
-- [KPIs y Métricas](docs/kpis/kpis-metrics.md)
-
-#### ⚙️ Configuración
-- [Neon Postgres](docs/setup/neon-postgres.md)
-- [Variables de Entorno](docs/setup/env-variables.md)
-- [Web Camera Setup](apps/web-camera/README.md)
-- [Dashboard Next Setup](docs/setup/dashboard-next-setup.md)
-- [API Express Setup](docs/setup/api-express-setup.md)
-
-#### 🔒 Seguridad y Privacidad
-- [Privacidad y Costos](docs/security-privacy/privacy-costs.md)
-- [Retención de Datos](docs/security-privacy/data-retention.md)
-
-#### 🔧 Operaciones
-- [Montaje de Hardware](docs/ops/hardware-mounting.md)
-- [Iluminación y FOV](docs/ops/lighting-and-fov.md)
-- [Etiquetado QR](docs/ops/qr-labeling.md)
-
-#### 🎬 Demo
-- [Script de Demostración](docs/demo/demo-script.md)
-- [Criterios de Éxito](docs/demo/success-criteria.md)
-
-#### ⚠️ Riesgos
-- [Registro de Riesgos](docs/risk/risk-register.md)
-- [Mitigaciones](docs/risk/mitigations.md)
-
-#### 📅 Planificación
-- [Roles y Tareas (36h)](docs/planning/roles-and-tasks-36h.md)
-- [Checklist de Hoy](docs/planning/today-checklist.md)
-- [Milestones por Hora](docs/planning/milestones.md)
-
-#### 📚 Referencias
-- [Guía de Catálogo SKU](docs/references/sku-catalog-guidance.md)
-
-### Componentes del Sistema
-
-- [Web Camera App](apps/web-camera/README.md) — Aplicación web para captura en tiempo real con Gemini Live API
-- [Dashboard Web](apps/dashboard/README.md) — Panel de control y monitoreo
-- [API Backend](apps/api/README.md) — Servidor de procesamiento y lógica de negocio
-- [UI Package](packages/ui/README.md) — Componentes compartidos (opcional)
+### 5. Usar la Aplicación
+```
+Abre: http://localhost:3002/
+Clic en: "▶ Iniciar Streaming"
+Muestra productos a la cámara
+```
 
 ---
 
-## ⚠️ Nota Importante: Solo Documentación
+## 🏗️ Arquitectura
 
-Este repositorio contiene **ÚNICAMENTE documentación en formato Markdown**. No incluye:
-- ❌ Código fuente (.ts, .js, .tsx, .py, etc.)
-- ❌ Archivos de configuración (package.json, tsconfig.json, etc.)
-- ❌ Pipelines de CI/CD (.yml, .yaml)
-- ❌ Lockfiles (package-lock.json, yarn.lock)
-- ❌ Binarios o ejecutables
+```
+🌐 Web Camera App (React + Vite)
+    ↓ WebSocket (2 fps)
+🔧 Backend API (Node.js + Express)
+    ↓ REST API
+🤖 Gemini Robotics-ER 1.5
+    ↓ JSON Response
+📊 ProductDetection → Database
+    ↓ WebSocket Event
+🌐 Web App actualiza UI
 
-El propósito es servir como **especificación técnica completa** para el desarrollo del MVP durante HackMTY.
+Latencia: ~1-2 segundos
+```
 
 ---
 
-## Contribuciones y Uso
+## 📦 Productos Detectables
 
-Este proyecto fue desarrollado para **HackMTY x GateGroup** como documentación guía para construir un MVP de Smart Trolley en 36 horas.
+El sistema detecta productos por **COLOR, FORMA y TEXTO visible**:
 
-**Licencia**: Documentación de uso interno para el hackathon.
+### Bebidas (Latas):
+- 🥤 Coca-Cola 350ml (lata roja)
+- 🥤 Coca-Cola Zero 350ml (lata negra)
+- 🥤 Sprite 350ml (lata verde)
+- 🥤 Pepsi 350ml (lata azul)
 
-**Contacto**: Equipo GateGroup Smart Trolley
+### Bebidas (Botellas):
+- 💧 Agua Natural 500ml (botella transparente)
+
+### Snacks (Bolsas):
+- 🍟 Lays Original 100gr (bolsa amarilla)
+- 🍟 Lays Queso 100gr (bolsa naranja)
+- 🌮 Doritos Nacho 100gr (bolsa roja)
+
+---
+
+## 🛠️ Stack Tecnológico
+
+### Frontend:
+- React 18 + TypeScript
+- Vite
+- Tailwind CSS
+- Socket.IO Client
+- WebRTC (getUserMedia)
+
+### Backend:
+- Node.js + Express
+- Socket.IO Server
+- Prisma ORM
+- PostgreSQL (Neon)
+- Gemini Robotics-ER 1.5 REST API
+
+---
+
+## 🎯 Características
+
+- ✅ **Detección en tiempo real** (2 fps)
+- ✅ **Streaming automático** al hacer clic en Iniciar
+- ✅ **Gemini Robotics-ER 1.5** para análisis visual
+- ✅ **WebSocket bidireccional** para latencia mínima
+- ✅ **Detección por COLOR, FORMA y TEXTO** (sin SKUs)
+- ✅ **Cooldown anti-duplicados** (1.2 segundos)
+- ✅ **UI simplificada** (solo Iniciar/Detener)
+- ✅ **Server-side processing** (API key segura)
+
+---
+
+## 📁 Estructura del Proyecto
+
+```
+GateGroup_HackMTY/
+├── apps/
+│   ├── api/                    # Backend Node.js
+│   │   ├── src/index.js
+│   │   ├── services/
+│   │   │   └── geminiService.js   # Gemini REST API
+│   │   └── routes/
+│   │       ├── videoStream.js     # WebSocket streaming
+│   │       └── detections.js      # REST endpoints
+│   │
+│   ├── web-camera/             # Web App React
+│   │   └── src/
+│   │       ├── pages/
+│   │       │   └── LiveRecording.tsx  # Página principal
+│   │       ├── components/
+│   │       │   ├── CameraView.tsx      # Vista de cámara
+│   │       │   ├── DetectionFeed.tsx   # Lista de detecciones
+│   │       │   └── StatusPanel.tsx     # Controles
+│   │       └── services/
+│   │           ├── websocketService.ts  # Cliente WebSocket
+│   │           └── cameraService.ts     # Manejo de cámara
+│   │
+│   └── dashboard/              # Dashboard (opcional)
+│
+├── prisma/
+│   └── schema.prisma           # Modelo de datos
+│
+└── seed-products.js            # Seed de productos
+```
+
+---
+
+## 🔌 API WebSocket
+
+### Eventos Cliente → Backend:
+```typescript
+start_scan({ trolleyId, operatorId }) → { scanId, status }
+frame({ scanId, frameId, jpegBase64, ts }) → void
+end_scan({ scanId }) → { status, endedAt }
+```
+
+### Eventos Backend → Cliente:
+```typescript
+product_detected({
+  trolley_id,
+  product_id,
+  product_name,
+  detected_at,
+  confidence,
+  box_2d
+})
+```
+
+---
+
+## 🎬 Flujo de Uso
+
+1. Usuario abre http://localhost:3002/
+2. Hace clic en **"▶ Iniciar Streaming"**
+3. WebSocket conecta al backend
+4. Sesión de scan se crea automáticamente
+5. Cámara inicia streaming a 2 fps
+6. Cada frame se envía al backend automáticamente
+7. Backend analiza con Gemini
+8. Detecciones aparecen en UI automáticamente
+
+**Todo automático después del clic inicial** ✅
+
+---
+
+## 🐛 Troubleshooting
+
+### "Sin conexión al servidor"
+- Verifica que backend esté corriendo: `curl http://localhost:3001`
+- Verifica`.env` en `apps/web-camera`
+- Recarga la página: Ctrl+Shift+R
+
+### "Gemini inactivo"
+- Es normal hasta que se reciba la primera detección
+- Muestra un producto a la cámara
+- Espera 1-2 segundos
+
+### "No se detectan productos"
+- Verifica logs del backend para errores de Gemini
+- Asegúrate de usar productos de la lista
+- Mejora la iluminación
+- Acerca más el producto
+
+---
+
+## 📊 Métricas
+
+- **Latencia**: ~1-2 segundos end-to-end
+- **FPS**: 2 frames por segundo
+- **Threshold**: 0.70 de confianza
+- **Cooldown**: 1.2 segundos por producto
+
+---
+
+## 📝 Licencia
+
+MIT - GateGroup Smart Trolley Team
