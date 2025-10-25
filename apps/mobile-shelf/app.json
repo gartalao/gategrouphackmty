@@ -1,36 +1,28 @@
 {
   "expo": {
-    "name": "Smart Trolley Shelf",
-    "slug": "mobile-shelf",
+    "name": "Smart Trolley Camera",
+    "slug": "smart-trolley-camera",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
     "ios": {
       "supportsTablet": true
     },
     "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
-      },
-      "edgeToEdgeEnabled": true,
-      "package": "com.hackmty.smarttrolley",
       "permissions": [
-        "CAMERA",
-        "INTERNET",
-        "ACCESS_NETWORK_STATE",
-        "WAKE_LOCK"
+        "android.permission.CAMERA",
+        "android.permission.INTERNET",
+        "android.permission.ACCESS_NETWORK_STATE"
       ]
     },
-    "web": {
-      "favicon": "./assets/favicon.png"
-    }
+    "scheme": "smarttrolley",
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Smart Trolley to access your camera for product scanning."
+        }
+      ]
+    ]
   }
 }
