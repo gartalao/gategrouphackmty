@@ -35,6 +35,10 @@ export class CameraService {
    * Inicializa la cámara
    */
   async initialize(videoElement: HTMLVideoElement): Promise<void> {
+    if (!videoElement) {
+      throw new Error('Video element is required');
+    }
+
     this.videoElement = videoElement;
     
     // Crear canvas para captura de frames
@@ -56,6 +60,10 @@ export class CameraService {
         audio: false,
       });
 
+      if (!this.videoElement) {
+        throw new Error('Video element is null');
+      }
+
       this.videoElement.srcObject = this.stream;
       
       return new Promise((resolve) => {
@@ -75,8 +83,12 @@ export class CameraService {
    * Inicia la captura de frames
    */
   startCapture(intervalMs: number = 1000): void {
-    if (this.isCapturing) return;
+    if (this.isCapturing) {
+      console.log('[CameraService] ⚠️ Ya está capturando');
+      return;
+    }
     
+    console.log('[CameraService] 🎬 Iniciando captura con intervalo:', intervalMs, 'ms');
     this.isCapturing = true;
     this.captureLoop(intervalMs);
   }
@@ -98,8 +110,16 @@ export class CameraService {
   private captureLoop(intervalMs: number): void {
     if (!this.isCapturing) return;
 
+    let frameCount = 0;
     const captureFrame = () => {
-      if (!this.videoElement || !this.canvas || !this.ctx) return;
+      if (!this.videoElement || !this.canvas || !this.ctx) {
+        console.error('[CameraService] ❌ Elementos no disponibles:', {
+          video: !!this.videoElement,
+          canvas: !!this.canvas,
+          ctx: !!this.ctx
+        });
+        return;
+      }
 
       // Configurar canvas con las dimensiones del video
       this.canvas.width = this.videoElement.videoWidth;
@@ -110,6 +130,10 @@ export class CameraService {
 
       // Convertir a base64
       const imageData = this.canvas.toDataURL('image/jpeg', 0.8);
+      
+      frameCount++;
+      console.log(`[CameraService] 📸 Frame ${frameCount} capturado - Tamaño:`, Math.round(imageData.length / 1024), 'KB');
+      
       this.callbacks.onFrame?.(imageData);
 
       // Programar siguiente captura

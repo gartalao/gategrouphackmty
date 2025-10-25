@@ -5,12 +5,14 @@ import { CameraService } from '../services/cameraService';
 interface CameraViewProps {
   onFrame?: (imageData: string) => void;
   onError?: (error: Error) => void;
+  isStreaming?: boolean; // Control externo de streaming
   className?: string;
 }
 
 export const CameraView: React.FC<CameraViewProps> = ({
   onFrame,
   onError,
+  isStreaming = false,
   className = '',
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -29,6 +31,15 @@ export const CameraView: React.FC<CameraViewProps> = ({
       }
     };
   }, []);
+
+  // Auto-iniciar/detener streaming según prop
+  useEffect(() => {
+    if (isStreaming && isInitialized && !isCapturing) {
+      startCapture();
+    } else if (!isStreaming && isCapturing) {
+      stopCapture();
+    }
+  }, [isStreaming, isInitialized]);
 
   const initializeCamera = async () => {
     if (!videoRef.current) return;
@@ -82,9 +93,11 @@ export const CameraView: React.FC<CameraViewProps> = ({
 
   const startCapture = () => {
     if (cameraServiceRef.current && isInitialized) {
-      // Video streaming continuo a 30fps (cada ~33ms un frame)
-      cameraServiceRef.current.startCapture(33); // ~30 fps para video real-time
+      // Captura optimizada para Rate Limit de Gemini (10 RPM = 1 cada 6 segundos)
+      // Usamos 7 segundos para tener margen de seguridad
+      cameraServiceRef.current.startCapture(7000); // ~8.5 frames/min (bajo el límite de 10 RPM)
       setIsCapturing(true);
+      console.log('[CameraView] 🎬 Streaming iniciado - 1 frame cada 7 segundos (Rate Limit optimizado)');
     }
   };
 
@@ -149,38 +162,8 @@ export const CameraView: React.FC<CameraViewProps> = ({
         )}
       </div>
 
-      {/* Controles de Captura */}
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
-        <div className="flex space-x-2">
-          {!isCapturing ? (
-            <button
-              onClick={startCapture}
-              disabled={!isInitialized}
-              className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-500 disabled:cursor-not-allowed px-4 py-2 rounded-lg transition-colors"
-            >
-              <Camera className="w-4 h-4" />
-              <span>Iniciar Streaming</span>
-            </button>
-          ) : (
-            <button
-              onClick={stopCapture}
-              className="flex items-center space-x-2 bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg transition-colors"
-            >
-              <CameraOff className="w-4 h-4" />
-              <span>Detener Captura</span>
-            </button>
-          )}
-
-          <button
-            onClick={captureFrame}
-            disabled={!isInitialized}
-            className="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-500 disabled:cursor-not-allowed px-4 py-2 rounded-lg transition-colors"
-          >
-            <Camera className="w-4 h-4" />
-            <span>Foto Manual</span>
-          </button>
-        </div>
-      </div>
+      {/* Solo mostrar estado, sin controles manuales */}
+      {/* El streaming se controla desde LiveRecording con props */}
 
       {/* Indicador de Captura */}
       {isCapturing && (

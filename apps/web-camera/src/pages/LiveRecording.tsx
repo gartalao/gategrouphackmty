@@ -37,14 +37,21 @@ export const LiveRecording: React.FC<LiveRecordingProps> = ({
   // Referencias a servicios
   const geminiServiceRef = useRef<GeminiLiveService | null>(null);
   const wsServiceRef = useRef<WebSocketService | null>(null);
+  const scanIdRef = useRef<number | null>(null);
   const frameCounterRef = useRef(0);
+  const isRecordingRef = useRef(false); // Ref inmediata para evitar delays de React state
 
   // Configuración
   const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:3001';
   const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
 
   useEffect(() => {
-    initializeSession();
+    // NO auto-iniciar, esperar a que usuario haga clic en "Iniciar"
+    console.log('[LiveRecording] Componente montado. Esperando clic en Iniciar...');
+    console.log('[LiveRecording] 📋 Configuración:');
+    console.log('[LiveRecording]    - WS_URL:', WS_URL);
+    console.log('[LiveRecording]    - VITE_WS_URL:', import.meta.env.VITE_WS_URL);
+    console.log('[LiveRecording]    - Todas las env:', import.meta.env);
     
     return () => {
       cleanup();
@@ -53,33 +60,55 @@ export const LiveRecording: React.FC<LiveRecordingProps> = ({
 
   const initializeSession = async () => {
     try {
-      console.log('[LiveRecording] 🚀 Inicializando streaming directo...');
+      console.log('[LiveRecording] 🚀 Iniciando sesión...');
+      console.log('[LiveRecording] 📡 URL WebSocket:', WS_URL);
+      console.log('[LiveRecording] 🏭 Creando servicio WebSocket...');
       
-      // Configurar Gemini directo
-      if (!GEMINI_API_KEY) {
-        console.log('[LiveRecording] ⚠️ Sin API key de Gemini, modo demo');
-        setIsConnected(true);
-        setScanId(12345);
-        setGeminiStatus('idle');
-        setBackendStatus('disconnected');
-        return;
-      }
-
-      console.log('[LiveRecording] 🤖 Configurando Gemini directo...');
-      geminiServiceRef.current = new GeminiLiveService({
-        apiKey: GEMINI_API_KEY,
-        model: 'gemini-1.5-flash',
+      // Conectar a WebSocket del backend (server-side processing)
+      const wsService = new WebSocketService({
+        url: WS_URL,
+        onConnect: () => {
+          console.log('[LiveRecording] ✅ WebSocket conectado exitosamente');
+          setIsConnected(true);
+          setBackendStatus('connected');
+        },
+        onDisconnect: () => {
+          console.log('[LiveRecording] ❌ WebSocket desconectado');
+          setIsConnected(false);
+          setBackendStatus('disconnected');
+        },
+        onError: (error) => {
+          console.error('[LiveRecording] ❌ Error en WebSocket:', error);
+          setError(`Error de WebSocket: ${error.message}`);
+          setBackendStatus('disconnected');
+        },
+        onProductDetected: handleProductDetected,
       });
-      
+
+      console.log('[LiveRecording] 🔌 Conectando al WebSocket...');
+      await wsService.connect();
+      wsServiceRef.current = wsService;
+      console.log('[LiveRecording] ✅ Servicio WebSocket guardado en ref');
+
+      // Iniciar sesión de scan en el backend
+      console.log('[LiveRecording] 🎬 Iniciando sesión de scan...');
+      const response = await wsService.startScan({
+        trolleyId: trolleyId || 1,
+        operatorId: operatorId || 1,
+      });
+
+      scanIdRef.current = response.scanId;
+      setScanId(response.scanId);
       setIsConnected(true);
-      setScanId(12345);
       setGeminiStatus('idle');
-      setBackendStatus('disconnected');
-      console.log('[LiveRecording] ✅ Streaming directo configurado');
+
+      console.log(`[LiveRecording] ✅ Sesión iniciada. Scan ID: ${response.scanId}`);
+      console.log('[LiveRecording] 📡 Backend procesará frames con Gemini server-side');
       
     } catch (error) {
       console.error('[LiveRecording] ❌ Error inicializando:', error);
-      setError(`Error al inicializar: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+      setError(`Error al conectar: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+      setBackendStatus('disconnected');
     }
   };
 
@@ -93,10 +122,24 @@ export const LiveRecording: React.FC<LiveRecordingProps> = ({
     };
 
     setDetections((prev) => [newDetection, ...prev].slice(0, 20)); // Keep last 20
+    setGeminiStatus('success');
+    
+    console.log(`[LiveRecording] ✅ Producto detectado: ${event.product_name} (${Math.round(event.confidence * 100)}%)`);
   };
 
   const handleFrameCapture = async (imageData: string) => {
-    if (!isRecording || isPaused) return;
+    console.log('[LiveRecording] 🎯 handleFrameCapture llamado');
+    console.log('[LiveRecording] 📊 Estado:', { 
+      isRecording, 
+      isPaused,
+      isRecordingRef: isRecordingRef.current 
+    });
+    
+    // Usar REF en lugar de state para evitar delay de React
+    if (!isRecordingRef.current || isPaused) {
+      console.log('[LiveRecording] ⏸️ No se procesa frame - isRecordingRef:', isRecordingRef.current, 'isPaused:', isPaused);
+      return;
+    }
 
     try {
       frameCounterRef.current++;
@@ -108,63 +151,72 @@ export const LiveRecording: React.FC<LiveRecordingProps> = ({
 
       console.log(`[LiveRecording] 📸 Frame ${frameCounterRef.current} capturado a las ${currentTime}`);
 
-      // STREAMING DIRECTO: Cámara → Gemini
-      if (geminiServiceRef.current) {
+      // ENVIAR AL BACKEND VÍA WEBSOCKET (server-side processing)
+      if (wsServiceRef.current && scanIdRef.current) {
         try {
           setGeminiStatus('analyzing');
-          console.log(`[LiveRecording] 🤖 Gemini analizando frame ${frameCounterRef.current}...`);
           
-          const base64Data = imageData.split(',')[1];
+          const base64Data = imageData.split(',')[1]; // Remove data:image/jpeg;base64, prefix
           
-          // Catálogo de productos de ejemplo
-          const productCatalog = [
-            { productId: 1, name: 'Coca Cola 330ml', visualDescription: 'Lata roja de Coca Cola', detectionKeywords: ['coca', 'cola', 'lata', 'roja'] },
-            { productId: 2, name: 'Sandwich Club', visualDescription: 'Sandwich triangular con lechuga', detectionKeywords: ['sandwich', 'club', 'lechuga', 'triangular'] },
-            { productId: 3, name: 'Agua Mineral', visualDescription: 'Botella de agua transparente', detectionKeywords: ['agua', 'botella', 'transparente'] },
-            { productId: 4, name: 'Café Americano', visualDescription: 'Taza de café negro', detectionKeywords: ['cafe', 'americano', 'taza', 'negro'] },
-            { productId: 5, name: 'Galletas Oreo', visualDescription: 'Galletas redondas negras y blancas', detectionKeywords: ['oreo', 'galletas', 'negro', 'blanco'] }
-          ];
+          console.log(`[LiveRecording] 🔍 Datos del frame:`, {
+            frameId,
+            scanId: scanIdRef.current,
+            base64Length: base64Data.length,
+            timestamp: Date.now()
+          });
+          
+          // Enviar frame al backend vía WebSocket
+          wsServiceRef.current.sendFrame({
+            scanId: scanIdRef.current,
+            frameId,
+            jpegBase64: base64Data,
+            ts: Date.now(),
+          });
 
-          const result = await geminiServiceRef.current.analyzeFrame(
-            base64Data,
-            productCatalog,
-            { threshold: 0.7 }
-          );
-
-          if (result.detected && result.product_name) {
-            setGeminiStatus('success');
-            const newDetection: Detection = {
-              id: `gemini_${Date.now()}`,
-              product_name: result.product_name,
-              detected_at: new Date().toISOString(),
-              confidence: result.confidence || 0.85,
-            };
-
-            setDetections((prev) => [newDetection, ...prev].slice(0, 20));
-            console.log(`[LiveRecording] ✅ Producto detectado: ${result.product_name} (${Math.round((result.confidence || 0.85) * 100)}%)`);
-          } else {
-            setGeminiStatus('idle');
-            console.log(`[LiveRecording] 🔍 No se detectaron productos en frame ${frameCounterRef.current}`);
-          }
-        } catch (geminiError) {
+          console.log(`[LiveRecording] 📡 Frame ${frameCounterRef.current} ENVIADO al backend vía WebSocket`);
+          setGeminiStatus('idle');
+        } catch (error) {
           setGeminiStatus('error');
-          console.log('[LiveRecording] ❌ Error en análisis Gemini:', geminiError);
+          console.error('[LiveRecording] ❌ Error enviando frame:', error);
         }
       } else {
-        console.log(`[LiveRecording] ⚠️ Gemini no configurado, modo demo`);
-        setGeminiStatus('idle');
+        console.warn(`[LiveRecording] ⚠️ No se puede enviar frame:`, {
+          wsService: !!wsServiceRef.current,
+          scanId: scanIdRef.current
+        });
       }
     } catch (error) {
       console.error('[LiveRecording] ❌ Error processing frame:', error);
     }
   };
 
-  const handleStartRecording = () => {
-    setIsRecording(true);
-    setIsPaused(false);
+  const handleStartRecording = async () => {
+    try {
+      console.log('[LiveRecording] 🎬 handleStartRecording - INICIO');
+      
+      // PRIMERO: Establecer estado de grabación (ref + state)
+      isRecordingRef.current = true; // Actualización INMEDIATA con ref
+      setIsRecording(true);
+      setIsPaused(false);
+      console.log('[LiveRecording] ✅ Estado actualizado: isRecordingRef=true, isRecording=true');
+      
+      // SEGUNDO: Iniciar WebSocket + Sesión si no existe
+      if (!wsServiceRef.current || !scanIdRef.current) {
+        console.log('[LiveRecording] 🔌 Iniciando conexión WebSocket...');
+        await initializeSession();
+      }
+      
+      console.log('[LiveRecording] ▶ Streaming AUTOMÁTICO iniciado - Gemini analizará cada frame');
+    } catch (error) {
+      console.error('[LiveRecording] ❌ Error al iniciar streaming:', error);
+      setError(`Error al iniciar: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+      isRecordingRef.current = false; // Revertir en caso de error
+      setIsRecording(false);
+    }
   };
 
   const handlePauseRecording = () => {
+    // Ya no se usa, pero mantengo por compatibilidad
     setIsPaused(!isPaused);
   };
 
@@ -172,6 +224,7 @@ export const LiveRecording: React.FC<LiveRecordingProps> = ({
     if (!wsServiceRef.current || !scanId) return;
 
     try {
+      isRecordingRef.current = false; // Actualización INMEDIATA con ref
       setIsRecording(false);
       setIsPaused(false);
 
@@ -248,6 +301,7 @@ export const LiveRecording: React.FC<LiveRecordingProps> = ({
             <CameraView
               onFrame={handleFrameCapture}
               onError={(error) => setError(error.message)}
+              isStreaming={isRecording && !isPaused}
               className="h-96 lg:h-[500px]"
             />
           </div>

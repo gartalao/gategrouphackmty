@@ -1,0 +1,11 @@
+
+> @smart-trolley/web-camera@1.0.0 dev
+> vite
+
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+  VITE v5.4.21  ready in 97 ms
+
+  ➜  Local:   http://localhost:3002/
+  ➜  Network: http://10.22.212.212:3002/
+5:12:29 PM [vite] hmr update /src/pages/LiveRecording.tsx, /src/index.css

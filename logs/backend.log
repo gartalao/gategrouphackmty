@@ -1,0 +1,2012 @@
+
+> @smart-trolley/api@1.0.0 dev
+> nodemon src/index.js
+
+[33m[nodemon] 3.1.10[39m
+[33m[nodemon] to restart at any time, enter `rs`[39m
+[33m[nodemon] watching path(s): *.*[39m
+[33m[nodemon] watching extensions: js,mjs,cjs,json[39m
+[32m[nodemon] starting `node src/index.js`[39m
+[Gemini] Configurado con modelo: gemini-robotics-er-1.5-preview
+[Gemini] URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[WS] Video stream namespace initialized at /ws
+
+═══════════════════════════════════════════════════════
+🚀 Smart Trolley API Server
+═══════════════════════════════════════════════════════
+✅ Server running on http://localhost:3001
+✅ WebSocket available at ws://localhost:3001/ws
+✅ Gemini Mode: 🤖 REAL (Production)
+✅ Database: 🟢 Connected
+═══════════════════════════════════════════════════════
+
+📡 Endpoints:
+   GET  /                          - API info
+   GET  /health                    - Health check
+   GET  /api/trolleys/:id/realtime-status
+   GET  /api/trolleys/:id/detections
+   GET  /api/scans/:id/summary
+
+🎥 WebSocket Events:
+   start_scan  - Iniciar grabación
+   frame       - Enviar frame de video
+   end_scan    - Finalizar grabación
+
+👀 Listening for connections...
+
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/index.js`[39m
+[Gemini] Configurado con modelo: gemini-robotics-er-1.5-preview
+[Gemini] URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[WS] Video stream namespace initialized at /ws
+
+═══════════════════════════════════════════════════════
+🚀 Smart Trolley API Server
+═══════════════════════════════════════════════════════
+✅ Server running on http://localhost:3001
+✅ WebSocket available at ws://localhost:3001/ws
+✅ Gemini Mode: 🤖 REAL (Production)
+✅ Database: 🟢 Connected
+═══════════════════════════════════════════════════════
+
+📡 Endpoints:
+   GET  /                          - API info
+   GET  /health                    - Health check
+   GET  /api/trolleys/:id/realtime-status
+   GET  /api/trolleys/:id/detections
+   GET  /api/scans/:id/summary
+
+🎥 WebSocket Events:
+   start_scan  - Iniciar grabación
+   frame       - Enviar frame de video
+   end_scan    - Finalizar grabación
+
+👀 Listening for connections...
+
+[WS] No token provided, using guest user (dev mode)
+[WS] User guest connected (sVFDpxWlROtXwh4FAAAB)
+[WS] Trolley 123 no existe, usando trolley por defecto
+[WS] Operator 456 no existe, usando operator por defecto
+[WS] Scan 59 started for trolley 1
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_2_1761433385011',
+  base64Length: 37100,
+  timestamp: 1761433385017
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 37100
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": true, \"product_name\": \"Coca-Cola 350ml\", \"confidence\": 0.95, \"action\": \"placing_in_trolley\", \"box_2d\": [386, 500, 566, 754]}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":68,"totalTokenCount":1000,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":
+[Gemini] 📄 Texto extraído: {"detected": true, "product_name": "Coca-Cola 350ml", "confidence": 0.95, "action": "placing_in_trolley", "box_2d": [386, 500, 566, 754]}
+[Gemini] 🔍 Parsed result: {"detected":true,"product_name":"Coca-Cola 350ml","confidence":0.95,"action":"placing_in_trolley","box_2d":[386,500,566,754]}
+[Gemini] ✅ Detección válida: {
+  detected: true,
+  product_name: 'Coca-Cola 350ml',
+  confidence: 0.95,
+  action: 'placing_in_trolley',
+  box_2d: [ 386, 500, 566, 754 ]
+}
+[WS] 🔍 Resultado de Gemini: {
+  detected: true,
+  product_name: 'Coca-Cola 350ml',
+  confidence: 0.95,
+  action: 'placing_in_trolley',
+  box_2d: [ 386, 500, 566, 754 ]
+}
+[WS] 🎯 Producto detectado: Coca-Cola 350ml Confianza: 0.95
+[WS] Product detected: Coca-Cola 350ml (confidence: 0.95) with box
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_3_1761433392045',
+  base64Length: 35812,
+  timestamp: 1761433392048
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 35812
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": true, \"product_name\": \"Coca-Cola 350ml\", \"confidence\": 0.95, \"action\": \"placing_in_trolley\", \"box_2d\": [398, 539, 575, 800]}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":68,"totalTokenCount":1000,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":
+[Gemini] 📄 Texto extraído: {"detected": true, "product_name": "Coca-Cola 350ml", "confidence": 0.95, "action": "placing_in_trolley", "box_2d": [398, 539, 575, 800]}
+[Gemini] 🔍 Parsed result: {"detected":true,"product_name":"Coca-Cola 350ml","confidence":0.95,"action":"placing_in_trolley","box_2d":[398,539,575,800]}
+[Gemini] ✅ Detección válida: {
+  detected: true,
+  product_name: 'Coca-Cola 350ml',
+  confidence: 0.95,
+  action: 'placing_in_trolley',
+  box_2d: [ 398, 539, 575, 800 ]
+}
+[WS] 🔍 Resultado de Gemini: {
+  detected: true,
+  product_name: 'Coca-Cola 350ml',
+  confidence: 0.95,
+  action: 'placing_in_trolley',
+  box_2d: [ 398, 539, 575, 800 ]
+}
+[WS] 🎯 Producto detectado: Coca-Cola 350ml Confianza: 0.95
+[WS] Product detected: Coca-Cola 350ml (confidence: 0.95) with box
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_4_1761433399067',
+  base64Length: 45416,
+  timestamp: 1761433399069
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 45416
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": true, \"product_name\": \"Doritos Nacho 100gr\", \"confidence\": 0.9, \"action\": \"placing_in_trolley\", \"box_2d\": [288, 292, 772, 697]}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":68,"totalTokenCount":1000,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseI
+[Gemini] 📄 Texto extraído: {"detected": true, "product_name": "Doritos Nacho 100gr", "confidence": 0.9, "action": "placing_in_trolley", "box_2d": [288, 292, 772, 697]}
+[Gemini] 🔍 Parsed result: {"detected":true,"product_name":"Doritos Nacho 100gr","confidence":0.9,"action":"placing_in_trolley","box_2d":[288,292,772,697]}
+[Gemini] ✅ Detección válida: {
+  detected: true,
+  product_name: 'Doritos Nacho 100gr',
+  confidence: 0.9,
+  action: 'placing_in_trolley',
+  box_2d: [ 288, 292, 772, 697 ]
+}
+[WS] 🔍 Resultado de Gemini: {
+  detected: true,
+  product_name: 'Doritos Nacho 100gr',
+  confidence: 0.9,
+  action: 'placing_in_trolley',
+  box_2d: [ 288, 292, 772, 697 ]
+}
+[WS] 🎯 Producto detectado: Doritos Nacho 100gr Confianza: 0.9
+[WS] Product detected: Doritos Nacho 100gr (confidence: 0.90) with box
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_5_1761433406090',
+  base64Length: 30876,
+  timestamp: 1761433406091
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 30876
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"P1f9aIuHPLD7qtsPi7eLkAc"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_6_1761433413119',
+  base64Length: 29780,
+  timestamp: 1761433413122
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 29780
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"R1f9aPmHCeGJz7IPkb27gAw"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_7_1761433420151',
+  base64Length: 34164,
+  timestamp: 1761433420153
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 34164
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"TVf9aJOKOqflqtsP9ZCj4AU"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_8_1761433427176',
+  base64Length: 23388,
+  timestamp: 1761433427179
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 23388
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"VFf9aNPTOsXRz7IPzsTKMA"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_9_1761433434193',
+  base64Length: 19660,
+  timestamp: 1761433434197
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 19660
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"XFf9aIidFKvTz7IP8eHrOQ"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_10_1761433444689',
+  base64Length: 19284,
+  timestamp: 1761433444705
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 19284
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"Zlf9aMSBLZClmtkPpJ2sGA"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_11_1761433451709',
+  base64Length: 19104,
+  timestamp: 1761433451711
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 19104
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"bVf9aMyJK8Gtz7IPjumZ8AM"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_12_1761433458733',
+  base64Length: 19400,
+  timestamp: 1761433458735
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 19400
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"dFf9aPmNIa22qtsP1oYS"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_13_1761433465770',
+  base64Length: 18404,
+  timestamp: 1761433465772
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 18404
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"e1f9aPuvKubwqtsPrs-oyAE"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_14_1761433472802',
+  base64Length: 31868,
+  timestamp: 1761433472805
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 31868
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": true, \"product_name\": \"Doritos Nacho 100gr\", \"confidence\": 0.95, \"action\": \"placing_in_trolley\", \"box_2d\": [241, 119, 829, 495]}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":69,"totalTokenCount":1001,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","response
+[Gemini] 📄 Texto extraído: {"detected": true, "product_name": "Doritos Nacho 100gr", "confidence": 0.95, "action": "placing_in_trolley", "box_2d": [241, 119, 829, 495]}
+[Gemini] 🔍 Parsed result: {"detected":true,"product_name":"Doritos Nacho 100gr","confidence":0.95,"action":"placing_in_trolley","box_2d":[241,119,829,495]}
+[Gemini] ✅ Detección válida: {
+  detected: true,
+  product_name: 'Doritos Nacho 100gr',
+  confidence: 0.95,
+  action: 'placing_in_trolley',
+  box_2d: [ 241, 119, 829, 495 ]
+}
+[WS] 🔍 Resultado de Gemini: {
+  detected: true,
+  product_name: 'Doritos Nacho 100gr',
+  confidence: 0.95,
+  action: 'placing_in_trolley',
+  box_2d: [ 241, 119, 829, 495 ]
+}
+[WS] 🎯 Producto detectado: Doritos Nacho 100gr Confianza: 0.95
+[WS] Product detected: Doritos Nacho 100gr (confidence: 0.95) with box
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_15_1761433479836',
+  base64Length: 22144,
+  timestamp: 1761433479838
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 22144
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": true, \"product_name\": \"Coca-Cola 350ml\", \"confidence\": 0.9, \"action\": \"placing_in_trolley\", \"box_2d\": [368, 0, 750, 200]}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":65,"totalTokenCount":997,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"iVf
+[Gemini] 📄 Texto extraído: {"detected": true, "product_name": "Coca-Cola 350ml", "confidence": 0.9, "action": "placing_in_trolley", "box_2d": [368, 0, 750, 200]}
+[Gemini] 🔍 Parsed result: {"detected":true,"product_name":"Coca-Cola 350ml","confidence":0.9,"action":"placing_in_trolley","box_2d":[368,0,750,200]}
+[Gemini] ✅ Detección válida: {
+  detected: true,
+  product_name: 'Coca-Cola 350ml',
+  confidence: 0.9,
+  action: 'placing_in_trolley',
+  box_2d: [ 368, 0, 750, 200 ]
+}
+[WS] 🔍 Resultado de Gemini: {
+  detected: true,
+  product_name: 'Coca-Cola 350ml',
+  confidence: 0.9,
+  action: 'placing_in_trolley',
+  box_2d: [ 368, 0, 750, 200 ]
+}
+[WS] 🎯 Producto detectado: Coca-Cola 350ml Confianza: 0.9
+[WS] Product detected: Coca-Cola 350ml (confidence: 0.90) with box
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_16_1761433486869',
+  base64Length: 27624,
+  timestamp: 1761433486871
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 27624
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": true, \"product_name\": \"Doritos Nacho 100gr\", \"confidence\": 0.9, \"action\": \"placing_in_trolley\", \"box_2d\": [295, 225, 716, 530]}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":68,"totalTokenCount":1000,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseI
+[Gemini] 📄 Texto extraído: {"detected": true, "product_name": "Doritos Nacho 100gr", "confidence": 0.9, "action": "placing_in_trolley", "box_2d": [295, 225, 716, 530]}
+[Gemini] 🔍 Parsed result: {"detected":true,"product_name":"Doritos Nacho 100gr","confidence":0.9,"action":"placing_in_trolley","box_2d":[295,225,716,530]}
+[Gemini] ✅ Detección válida: {
+  detected: true,
+  product_name: 'Doritos Nacho 100gr',
+  confidence: 0.9,
+  action: 'placing_in_trolley',
+  box_2d: [ 295, 225, 716, 530 ]
+}
+[WS] 🔍 Resultado de Gemini: {
+  detected: true,
+  product_name: 'Doritos Nacho 100gr',
+  confidence: 0.9,
+  action: 'placing_in_trolley',
+  box_2d: [ 295, 225, 716, 530 ]
+}
+[WS] 🎯 Producto detectado: Doritos Nacho 100gr Confianza: 0.9
+[WS] Product detected: Doritos Nacho 100gr (confidence: 0.90) with box
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_17_1761433493901',
+  base64Length: 20600,
+  timestamp: 1761433493902
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 20600
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"l1f9aO72Hrjiz7IPt6rlsQU"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_18_1761433500938',
+  base64Length: 24568,
+  timestamp: 1761433500940
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 24568
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": true, \"product_name\": \"Coca-Cola 350ml\", \"confidence\": 0.95, \"action\": \"placing_in_trolley\", \"box_2d\": [425, 187, 645, 384]}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":68,"totalTokenCount":1000,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":
+[Gemini] 📄 Texto extraído: {"detected": true, "product_name": "Coca-Cola 350ml", "confidence": 0.95, "action": "placing_in_trolley", "box_2d": [425, 187, 645, 384]}
+[Gemini] 🔍 Parsed result: {"detected":true,"product_name":"Coca-Cola 350ml","confidence":0.95,"action":"placing_in_trolley","box_2d":[425,187,645,384]}
+[Gemini] ✅ Detección válida: {
+  detected: true,
+  product_name: 'Coca-Cola 350ml',
+  confidence: 0.95,
+  action: 'placing_in_trolley',
+  box_2d: [ 425, 187, 645, 384 ]
+}
+[WS] 🔍 Resultado de Gemini: {
+  detected: true,
+  product_name: 'Coca-Cola 350ml',
+  confidence: 0.95,
+  action: 'placing_in_trolley',
+  box_2d: [ 425, 187, 645, 384 ]
+}
+[WS] 🎯 Producto detectado: Coca-Cola 350ml Confianza: 0.95
+[WS] Product detected: Coca-Cola 350ml (confidence: 0.95) with box
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_19_1761433507969',
+  base64Length: 18816,
+  timestamp: 1761433507970
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 18816
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"pVf9aNGUEubwqtsPrs-oyAE"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_20_1761433515004',
+  base64Length: 18996,
+  timestamp: 1761433515006
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 18996
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"rFf9aIG_KsKzqtsPrbinmAE"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_21_1761433522038',
+  base64Length: 18320,
+  timestamp: 1761433522040
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 18320
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"tFf9aLa1Arbhz7IPlfamyAY"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_22_1761433529071',
+  base64Length: 18028,
+  timestamp: 1761433529072
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 18028
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"ulf9aJKnNvyMqtsPyPGH4AE"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_23_1761433536099',
+  base64Length: 22144,
+  timestamp: 1761433536099
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 22144
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": true, \"product_name\": \"Coca-Cola 350ml\", \"confidence\": 0.95, \"action\": \"placing_in_trolley\", \"box_2d\": [590, 248, 860, 379]}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":68,"totalTokenCount":1000,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":
+[Gemini] 📄 Texto extraído: {"detected": true, "product_name": "Coca-Cola 350ml", "confidence": 0.95, "action": "placing_in_trolley", "box_2d": [590, 248, 860, 379]}
+[Gemini] 🔍 Parsed result: {"detected":true,"product_name":"Coca-Cola 350ml","confidence":0.95,"action":"placing_in_trolley","box_2d":[590,248,860,379]}
+[Gemini] ✅ Detección válida: {
+  detected: true,
+  product_name: 'Coca-Cola 350ml',
+  confidence: 0.95,
+  action: 'placing_in_trolley',
+  box_2d: [ 590, 248, 860, 379 ]
+}
+[WS] 🔍 Resultado de Gemini: {
+  detected: true,
+  product_name: 'Coca-Cola 350ml',
+  confidence: 0.95,
+  action: 'placing_in_trolley',
+  box_2d: [ 590, 248, 860, 379 ]
+}
+[WS] 🎯 Producto detectado: Coca-Cola 350ml Confianza: 0.95
+[WS] Product detected: Coca-Cola 350ml (confidence: 0.95) with box
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_24_1761433543137',
+  base64Length: 18192,
+  timestamp: 1761433543140
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 18192
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"yFf9aIrPM-vjz7IPh4uugAE"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_25_1761433550166',
+  base64Length: 18104,
+  timestamp: 1761433550167
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 18104
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"0Ff9aNuMB8XRz7IPzsTKMA"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_26_1761433557194',
+  base64Length: 25192,
+  timestamp: 1761433557195
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 25192
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": true, \"product_name\": \"Doritos Nacho 100gr\", \"confidence\": 0.9, \"action\": \"placing_in_trolley\", \"box_2d\": [430, 208, 770, 484]}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":68,"totalTokenCount":1000,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseI
+[Gemini] 📄 Texto extraído: {"detected": true, "product_name": "Doritos Nacho 100gr", "confidence": 0.9, "action": "placing_in_trolley", "box_2d": [430, 208, 770, 484]}
+[Gemini] 🔍 Parsed result: {"detected":true,"product_name":"Doritos Nacho 100gr","confidence":0.9,"action":"placing_in_trolley","box_2d":[430,208,770,484]}
+[Gemini] ✅ Detección válida: {
+  detected: true,
+  product_name: 'Doritos Nacho 100gr',
+  confidence: 0.9,
+  action: 'placing_in_trolley',
+  box_2d: [ 430, 208, 770, 484 ]
+}
+[WS] 🔍 Resultado de Gemini: {
+  detected: true,
+  product_name: 'Doritos Nacho 100gr',
+  confidence: 0.9,
+  action: 'placing_in_trolley',
+  box_2d: [ 430, 208, 770, 484 ]
+}
+[WS] 🎯 Producto detectado: Doritos Nacho 100gr Confianza: 0.9
+[WS] Product detected: Doritos Nacho 100gr (confidence: 0.90) with box
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_27_1761433564217',
+  base64Length: 18024,
+  timestamp: 1761433564219
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 18024
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"3lf9aK6YBKaez7IP3c_JwQY"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_28_1761433571248',
+  base64Length: 17580,
+  timestamp: 1761433571249
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 17580
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"5Vf9aPPpA9e2qtsPsMWrCA"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_29_1761433578287',
+  base64Length: 17288,
+  timestamp: 1761433578289
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 17288
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"61f9aL3IPIjQz7IPjoTIOQ"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_30_1761433585322',
+  base64Length: 17876,
+  timestamp: 1761433585324
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 17876
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"8lf9aPisMePRz7IPtKGjOQ"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_31_1761433592365',
+  base64Length: 18152,
+  timestamp: 1761433592367
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 18152
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"-Vf9aMPiPKLiqtsPotqF2Ak"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_32_1761433599406',
+  base64Length: 18060,
+  timestamp: 1761433599408
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 18060
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"AVj9aLW8G7aeqtsPn-nJgQc"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_33_1761433606439',
+  base64Length: 17916,
+  timestamp: 1761433606441
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 17916
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"CFj9aKrgHI-Hz7IP8KCb0QU"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_34_1761433613472',
+  base64Length: 28348,
+  timestamp: 1761433613474
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 28348
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": true, \"product_name\": \"Lays Original 100gr\", \"confidence\": 0.9, \"action\": \"placing_in_trolley\", \"box_2d\": [382, 153, 902, 385]}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":67,"totalTokenCount":999,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId
+[Gemini] 📄 Texto extraído: {"detected": true, "product_name": "Lays Original 100gr", "confidence": 0.9, "action": "placing_in_trolley", "box_2d": [382, 153, 902, 385]}
+[Gemini] 🔍 Parsed result: {"detected":true,"product_name":"Lays Original 100gr","confidence":0.9,"action":"placing_in_trolley","box_2d":[382,153,902,385]}
+[Gemini] ✅ Detección válida: {
+  detected: true,
+  product_name: 'Lays Original 100gr',
+  confidence: 0.9,
+  action: 'placing_in_trolley',
+  box_2d: [ 382, 153, 902, 385 ]
+}
+[WS] 🔍 Resultado de Gemini: {
+  detected: true,
+  product_name: 'Lays Original 100gr',
+  confidence: 0.9,
+  action: 'placing_in_trolley',
+  box_2d: [ 382, 153, 902, 385 ]
+}
+[WS] 🎯 Producto detectado: Lays Original 100gr Confianza: 0.9
+[WS] Product detected: Lays Original 100gr (confidence: 0.90) with box
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_35_1761433620502',
+  base64Length: 19944,
+  timestamp: 1761433620503
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 19944
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"Flj9aIybCI2qqtsP-sShmAc"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_36_1761433627541',
+  base64Length: 34504,
+  timestamp: 1761433627543
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 34504
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"HVj9aL3NDe-tz7IPhOf56AE"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_37_1761433634572',
+  base64Length: 26232,
+  timestamp: 1761433634574
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 26232
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"JFj9aImMKdbZqtsP34Cc4QE"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_38_1761433641603',
+  base64Length: 28128,
+  timestamp: 1761433641605
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 28128
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"```json\n{\n  \"detected\": true,\n  \"product_name\": \"Doritos Nacho 100gr\",\n  \"confidence\": 0.9,\n  \"action\": \"placing_in_trolley\",\n  \"box_2d\": [405, 169, 808, 403]\n}\n```"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":86,"totalTokenCount":1018,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-rob
+[Gemini] 📄 Texto extraído: ```json
+{
+  "detected": true,
+  "product_name": "Doritos Nacho 100gr",
+  "confidence": 0.9,
+  "action": "placing_in_trolley",
+  "box_2d": [405, 169, 808, 403]
+}
+```
+[Gemini] 🔍 Parsed result: {"detected":true,"product_name":"Doritos Nacho 100gr","confidence":0.9,"action":"placing_in_trolley","box_2d":[405,169,808,403]}
+[Gemini] ✅ Detección válida: {
+  detected: true,
+  product_name: 'Doritos Nacho 100gr',
+  confidence: 0.9,
+  action: 'placing_in_trolley',
+  box_2d: [ 405, 169, 808, 403 ]
+}
+[WS] 🔍 Resultado de Gemini: {
+  detected: true,
+  product_name: 'Doritos Nacho 100gr',
+  confidence: 0.9,
+  action: 'placing_in_trolley',
+  box_2d: [ 405, 169, 808, 403 ]
+}
+[WS] 🎯 Producto detectado: Doritos Nacho 100gr Confianza: 0.9
+[WS] Product detected: Doritos Nacho 100gr (confidence: 0.90) with box
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_39_1761433648635',
+  base64Length: 18576,
+  timestamp: 1761433648636
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 18576
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"Mlj9aOeuCbD7qtsPi7eLkAc"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_40_1761433655668',
+  base64Length: 18120,
+  timestamp: 1761433655670
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 18120
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"OVj9aJCIDKLiqtsPhZ2F-AY"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_41_1761433662701',
+  base64Length: 25852,
+  timestamp: 1761433662702
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 25852
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": true, \"product_name\": \"Coca-Cola 350ml\", \"confidence\": 0.95, \"action\": \"placing_in_trolley\", \"box_2d\": [470, 280, 785, 413]}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":68,"totalTokenCount":1000,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":
+[Gemini] 📄 Texto extraído: {"detected": true, "product_name": "Coca-Cola 350ml", "confidence": 0.95, "action": "placing_in_trolley", "box_2d": [470, 280, 785, 413]}
+[Gemini] 🔍 Parsed result: {"detected":true,"product_name":"Coca-Cola 350ml","confidence":0.95,"action":"placing_in_trolley","box_2d":[470,280,785,413]}
+[Gemini] ✅ Detección válida: {
+  detected: true,
+  product_name: 'Coca-Cola 350ml',
+  confidence: 0.95,
+  action: 'placing_in_trolley',
+  box_2d: [ 470, 280, 785, 413 ]
+}
+[WS] 🔍 Resultado de Gemini: {
+  detected: true,
+  product_name: 'Coca-Cola 350ml',
+  confidence: 0.95,
+  action: 'placing_in_trolley',
+  box_2d: [ 470, 280, 785, 413 ]
+}
+[WS] 🎯 Producto detectado: Coca-Cola 350ml Confianza: 0.95
+[WS] Product detected: Coca-Cola 350ml (confidence: 0.95) with box
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_42_1761433669737',
+  base64Length: 17892,
+  timestamp: 1761433669739
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 17892
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"R1j9aMbzF6rUz7IP6qybmQg"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_43_1761433676780',
+  base64Length: 18168,
+  timestamp: 1761433676783
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 18168
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"Tlj9aPv4KpCKmtkPlryVoAc"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_44_1761433683818',
+  base64Length: 18160,
+  timestamp: 1761433683820
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 18160
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"Vlj9aNHNN56lmtkPvoWC6Qo"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_45_1761433690849',
+  base64Length: 17500,
+  timestamp: 1761433690851
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 17500
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"XFj9aJXsD8KzqtsPrbinmAE"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_46_1761433697883',
+  base64Length: 17884,
+  timestamp: 1761433697885
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 17884
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"Y1j9aIWbOKDUz7IPv4PK4AY"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_47_1761433704921',
+  base64Length: 22852,
+  timestamp: 1761433704923
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 22852
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": true, \"product_name\": \"Coca-Cola 350ml\", \"confidence\": 0.9, \"action\": \"placing_in_trolley\", \"box_2d\": [610, 75, 921, 300]}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":66,"totalTokenCount":998,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"a1
+[Gemini] 📄 Texto extraído: {"detected": true, "product_name": "Coca-Cola 350ml", "confidence": 0.9, "action": "placing_in_trolley", "box_2d": [610, 75, 921, 300]}
+[Gemini] 🔍 Parsed result: {"detected":true,"product_name":"Coca-Cola 350ml","confidence":0.9,"action":"placing_in_trolley","box_2d":[610,75,921,300]}
+[Gemini] ✅ Detección válida: {
+  detected: true,
+  product_name: 'Coca-Cola 350ml',
+  confidence: 0.9,
+  action: 'placing_in_trolley',
+  box_2d: [ 610, 75, 921, 300 ]
+}
+[WS] 🔍 Resultado de Gemini: {
+  detected: true,
+  product_name: 'Coca-Cola 350ml',
+  confidence: 0.9,
+  action: 'placing_in_trolley',
+  box_2d: [ 610, 75, 921, 300 ]
+}
+[WS] 🎯 Producto detectado: Coca-Cola 350ml Confianza: 0.9
+[WS] Product detected: Coca-Cola 350ml (confidence: 0.90) with box
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_48_1761433711947',
+  base64Length: 27496,
+  timestamp: 1761433711948
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 27496
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"cVj9aL3pIOetz7IP-_G1gAk"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_49_1761433718986',
+  base64Length: 27484,
+  timestamp: 1761433718988
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 27484
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": true, \"product_name\": \"Doritos Nacho 100gr\", \"confidence\": 0.85, \"action\": \"placing_in_trolley\", \"box_2d\": [430, 40, 828, 585]}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":68,"totalTokenCount":1000,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseI
+[Gemini] 📄 Texto extraído: {"detected": true, "product_name": "Doritos Nacho 100gr", "confidence": 0.85, "action": "placing_in_trolley", "box_2d": [430, 40, 828, 585]}
+[Gemini] 🔍 Parsed result: {"detected":true,"product_name":"Doritos Nacho 100gr","confidence":0.85,"action":"placing_in_trolley","box_2d":[430,40,828,585]}
+[Gemini] ✅ Detección válida: {
+  detected: true,
+  product_name: 'Doritos Nacho 100gr',
+  confidence: 0.85,
+  action: 'placing_in_trolley',
+  box_2d: [ 430, 40, 828, 585 ]
+}
+[WS] 🔍 Resultado de Gemini: {
+  detected: true,
+  product_name: 'Doritos Nacho 100gr',
+  confidence: 0.85,
+  action: 'placing_in_trolley',
+  box_2d: [ 430, 40, 828, 585 ]
+}
+[WS] 🎯 Producto detectado: Doritos Nacho 100gr Confianza: 0.85
+[WS] Product detected: Doritos Nacho 100gr (confidence: 0.85) with box
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_50_1761433726022',
+  base64Length: 17496,
+  timestamp: 1761433726023
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 17496
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"f1j9aIy-II6fqtsP7c3P-QY"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_51_1761433733056',
+  base64Length: 19800,
+  timestamp: 1761433733058
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 19800
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"hlj9aKHMNevgqtsPgtfmAQ"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_52_1761433740081',
+  base64Length: 18416,
+  timestamp: 1761433740082
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 18416
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"jVj9aJfmNfjVz7IPytiXkAw"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_53_1761433747120',
+  base64Length: 24528,
+  timestamp: 1761433747122
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 24528
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": true, \"product_name\": \"Lays Original 100gr\", \"confidence\": 0.85, \"action\": \"placing_in_trolley\", \"box_2d\": [539, 68, 730, 439]}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":67,"totalTokenCount":999,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId
+[Gemini] 📄 Texto extraído: {"detected": true, "product_name": "Lays Original 100gr", "confidence": 0.85, "action": "placing_in_trolley", "box_2d": [539, 68, 730, 439]}
+[Gemini] 🔍 Parsed result: {"detected":true,"product_name":"Lays Original 100gr","confidence":0.85,"action":"placing_in_trolley","box_2d":[539,68,730,439]}
+[Gemini] ✅ Detección válida: {
+  detected: true,
+  product_name: 'Lays Original 100gr',
+  confidence: 0.85,
+  action: 'placing_in_trolley',
+  box_2d: [ 539, 68, 730, 439 ]
+}
+[WS] 🔍 Resultado de Gemini: {
+  detected: true,
+  product_name: 'Lays Original 100gr',
+  confidence: 0.85,
+  action: 'placing_in_trolley',
+  box_2d: [ 539, 68, 730, 439 ]
+}
+[WS] 🎯 Producto detectado: Lays Original 100gr Confianza: 0.85
+[WS] Product detected: Lays Original 100gr (confidence: 0.85) with box
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_54_1761433754152',
+  base64Length: 25440,
+  timestamp: 1761433754153
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 25440
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"m1j9aNvuM9SHz7IPo__T0AY"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_55_1761433761190',
+  base64Length: 22684,
+  timestamp: 1761433761191
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 22684
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"o1j9aOHkBsaCmtkP0cvV-A8"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_56_1761433768219',
+  base64Length: 18096,
+  timestamp: 1761433768221
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 18096
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"qlj9aKrdD56lmtkPvoWC6Qo"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_57_1761433775256',
+  base64Length: 18800,
+  timestamp: 1761433775258
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 18800
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"sFj9aI_8OLGtz7IP-6bI4QE"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_58_1761433782286',
+  base64Length: 17860,
+  timestamp: 1761433782288
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 17860
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"uFj9aKmgCOe2mtkPwdDC8QE"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_59_1761433789307',
+  base64Length: 18700,
+  timestamp: 1761433789308
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 18700
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"v1j9aOX4Eo-Hz7IP8KCb0QU"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_60_1761433796379',
+  base64Length: 22852,
+  timestamp: 1761433796382
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 22852
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": true, \"product_name\": \"Coca-Cola 350ml\", \"confidence\": 0.95, \"action\": \"placing_in_trolley\", \"box_2d\": [400, 379, 850, 480]}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":68,"totalTokenCount":1000,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":
+[Gemini] 📄 Texto extraído: {"detected": true, "product_name": "Coca-Cola 350ml", "confidence": 0.95, "action": "placing_in_trolley", "box_2d": [400, 379, 850, 480]}
+[Gemini] 🔍 Parsed result: {"detected":true,"product_name":"Coca-Cola 350ml","confidence":0.95,"action":"placing_in_trolley","box_2d":[400,379,850,480]}
+[Gemini] ✅ Detección válida: {
+  detected: true,
+  product_name: 'Coca-Cola 350ml',
+  confidence: 0.95,
+  action: 'placing_in_trolley',
+  box_2d: [ 400, 379, 850, 480 ]
+}
+[WS] 🔍 Resultado de Gemini: {
+  detected: true,
+  product_name: 'Coca-Cola 350ml',
+  confidence: 0.95,
+  action: 'placing_in_trolley',
+  box_2d: [ 400, 379, 850, 480 ]
+}
+[WS] 🎯 Producto detectado: Coca-Cola 350ml Confianza: 0.95
+[WS] Product detected: Coca-Cola 350ml (confidence: 0.95) with box
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_61_1761433803420',
+  base64Length: 17972,
+  timestamp: 1761433803422
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 17972
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 429
+[Gemini] ⚠️ RATE LIMIT EXCEEDED (429) - Demasiadas peticiones
+[Gemini] 💡 Reduce la frecuencia de frames o espera antes de enviar el siguiente
+[WS] 🔍 Resultado de Gemini: { detected: false, error: 429 }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_62_1761433810456',
+  base64Length: 24148,
+  timestamp: 1761433810458
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 24148
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"1Fj9aP6qEYTwqtsP0pewuAg"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_63_1761433817487',
+  base64Length: 23268,
+  timestamp: 1761433817489
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 23268
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"21j9aMOrHvv5qtsP_KriCA"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_64_1761433824521',
+  base64Length: 19816,
+  timestamp: 1761433824522
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 19816
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"4lj9aJflD77oz7IPrtSAeA"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_65_1761433831554',
+  base64Length: 18924,
+  timestamp: 1761433831557
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 18924
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"6Vj9aIpx9tfPsg_Et7HZBQ"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_66_1761433838586',
+  base64Length: 18668,
+  timestamp: 1761433838587
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 18668
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"8Fj9aOyTHO6mmtkP8ciz4AE"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_67_1761433845628',
+  base64Length: 26088,
+  timestamp: 1761433845634
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 26088
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"91j9aLu1F4niqtsP4J-PuAc"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_68_1761433852654',
+  base64Length: 26108,
+  timestamp: 1761433852656
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 26108
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"_lj9aID9Ip6J6dkP842j-AI"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_69_1761433859685',
+  base64Length: 23892,
+  timestamp: 1761433859688
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 23892
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"BVn9aKnuJKHjqtsPl_atEA"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] 📥 Frame recibido del cliente
+[WS] 📊 Datos del frame: {
+  scanId: 59,
+  frameId: 'frame_70_1761433866709',
+  base64Length: 25100,
+  timestamp: 1761433866711
+}
+[WS] ✅ Scan válido, obteniendo catálogo...
+[WS] 📦 Productos en catálogo: 8
+[WS] 🤖 Llamando a Gemini para análisis...
+[Gemini] 🚀 Iniciando análisis con Gemini API
+[Gemini] 📦 Catálogo: 8 productos
+[Gemini] 📊 Base64 length: 25100
+[Gemini] 📝 Prompt generado: Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
+
+PRODUCTOS DISPONIBLES:
+1. Coca-Cola 350ml — Lata roja con logo blanco de Coca-Cola — keywords: c...
+[Gemini] 📡 Enviando request a: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[WS] Scan 59 ended
+[Gemini] 📥 Response status: 200
+[Gemini] 📦 JSON response: {"candidates":[{"content":{"parts":[{"text":"{\"detected\": false}"}],"role":"model"},"finishReason":"STOP","index":0}],"usageMetadata":{"promptTokenCount":932,"candidatesTokenCount":5,"totalTokenCount":937,"promptTokensDetails":[{"modality":"TEXT","tokenCount":674},{"modality":"IMAGE","tokenCount":258}]},"modelVersion":"gemini-robotics-er-1.5-preview","responseId":"DFn9aNmuMq2AmtkP-YqiCA"}
+[Gemini] 📄 Texto extraído: {"detected": false}
+[Gemini] 🔍 Parsed result: {"detected":false}
+[Gemini] ✅ Detección válida: { detected: false }
+[WS] 🔍 Resultado de Gemini: { detected: false }
+[WS] ⚪ No se detectó producto o confianza baja
+[WS] User guest disconnected (sVFDpxWlROtXwh4FAAAB)
