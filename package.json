@@ -4,7 +4,8 @@
   "description": "Smart Trolley MVP for GateGroup HackMTY - Vision-powered Pick & Pack validation system",
   "private": true,
   "workspaces": [
-    "apps/*",
+    "apps/api",
+    "apps/dashboard",
     "packages/*"
   ],
   "scripts": {
@@ -51,5 +52,9 @@
   "license": "MIT",
   "dependencies": {
     "bcrypt": "^6.0.0"
+  },
+  "overrides": {
+    "react": "19.1.0",
+    "react-dom": "19.1.0"
   }
 }
