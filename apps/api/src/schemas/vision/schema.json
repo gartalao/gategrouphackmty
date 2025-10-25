@@ -1,0 +1,59 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["items"],
+  "properties": {
+    "items": {
+      "type": "array",
+      "description": "Lista de productos detectados en la imagen",
+      "items": {
+        "type": "object",
+        "required": ["sku", "quantity", "confidence"],
+        "properties": {
+          "sku": {
+            "type": "string",
+            "description": "Código SKU del producto (debe existir en catálogo)",
+            "pattern": "^[A-Z]{3}-[A-Z]{3}-[0-9]{2,4}$"
+          },
+          "quantity": {
+            "type": "integer",
+            "description": "Cantidad de unidades detectadas de este SKU",
+            "minimum": 1,
+            "maximum": 200
+          },
+          "confidence": {
+            "type": "number",
+            "description": "Score de confianza entre 0.0 y 1.0",
+            "minimum": 0.0,
+            "maximum": 1.0
+          },
+          "notes": {
+            "type": ["string", "null"],
+            "description": "Notas opcionales sobre la detección",
+            "maxLength": 255
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Metadata opcional del análisis",
+      "properties": {
+        "image_quality": {
+          "type": "string",
+          "enum": ["excellent", "good", "fair", "poor"]
+        },
+        "lighting_conditions": {
+          "type": "string",
+          "enum": ["good", "acceptable", "poor"]
+        },
+        "total_items_visible": {
+          "type": "integer"
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}
+

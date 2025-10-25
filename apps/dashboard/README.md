@@ -1,342 +1,176 @@
-# Dashboard Web
+# Smart Trolley Dashboard
 
-Panel de control web (Next.js) para monitoreo en tiempo real de trolleys, KPIs y alertas.
+Real-time monitoring dashboard for Smart Trolley system built with Next.js 14 (App Router).
 
-**⚠️ NOTA**: Este directorio NO contiene código fuente. Esta documentación describe conceptualmente el dashboard web del sistema Smart Trolley.
-
----
-
-## Propósito
-
-Proporcionar visibilidad en tiempo real del estado de trolleys, exactitud de detecciones, y alertas operativas para supervisores y operadores.
-
----
-
-## Características Principales
-
-- ✅ **Vista de trolleys** con estado por shelf (verde/amarillo/rojo)
-- ✅ **Panel de alertas** ordenado por severidad
-- ✅ **KPIs en tiempo real** (accuracy, tiempo, confidence)
-- ✅ **Gráficas** con Recharts (scans/hora, confidence/shelf)
-- ✅ **Actualización automática** vía WebSocket
-- ✅ **Responsive** (desktop y tablet)
-
----
-
-## Stack Tecnológico (Conceptual)
+## Stack
 
 - **Framework**: Next.js 14 (App Router)
-- **Estilos**: Tailwind CSS
-- **State Management**: React Query
-- **WebSocket**: Socket.io Client
-- **Gráficas**: Recharts
-- **Notificaciones**: react-hot-toast
+- **Styling**: Tailwind CSS
+- **State Management**: TanStack React Query
+- **Real-time**: Socket.IO Client
+- **Notifications**: React Hot Toast
+- **Date Utils**: date-fns
 
----
+## Setup
 
-## Rutas Principales
-
-```
-/                       → Landing / Login
-/dashboard              → Vista general de trolleys
-/flights/[id]           → Detalle de un vuelo
-/trolleys/[id]          → Detalle de un trolley en tiempo real
-/kpis                   → Dashboard de métricas
-/alerts                 → Panel de alertas activas
-/history                → Historial de scans
-```
-
----
-
-## Vistas Clave
-
-### 1. Dashboard General (`/dashboard`)
-
-```
-┌────────────────────────────────────────┐
-│ Smart Trolley Dashboard    [Usuario] ▼ │
-├────────────────────────────────────────┤
-│ 🔔 Alertas Activas: 3                  │
-├────────────────────────────────────────┤
-│ Trolleys Activos                       │
-│ ┌──────────┐ ┌──────────┐ ┌──────────┐│
-│ │TRLLY-001 │ │TRLLY-002 │ │TRLLY-003 ││
-│ │AA2345    │ │AM0876    │ │DL1234    ││
-│ │          │ │          │ │          ││
-│ │Shelf 1🟢 │ │Shelf 1🟢 │ │Shelf 1🟡 ││
-│ │Shelf 2🟡 │ │Shelf 2🟢 │ │Shelf 2🔴 ││
-│ │Shelf 3🟢 │ │Shelf 3🟢 │ │Shelf 3🟢 ││
-│ │75%       │ │100%      │ │45%       ││
-│ └──────────┘ └──────────┘ └──────────┘│
-│                                        │
-│ KPIs Rápidos                           │
-│ ┌──────┐ ┌──────┐ ┌──────┐            │
-│ │92.5% │ │7m 32s│ │0.87  │            │
-│ │Accur.│ │Tiempo│ │Conf. │            │
-│ └──────┘ └──────┘ └──────┘            │
-└────────────────────────────────────────┘
-```
-
-### 2. Detalle de Trolley (`/trolleys/[id]`)
-
-- Estado de cada shelf con semáforo
-- Thumbnail de última imagen capturada
-- Lista de items detectados vs esperados
-- Historial de scans recientes
-- Alertas activas de este trolley
-
-### 3. KPIs (`/kpis`)
-
-- Filtros por fecha, vuelo, trolley
-- Cards con métricas principales
-- Line chart de scans por hora
-- Bar chart de confidence por shelf
-- Pie chart de alertas por tipo
-- Tabla de top SKUs con errores
-
----
-
-## Integración con Backend
-
-### REST API
-
-```typescript
-// Obtener estado de trolley
-const response = await fetch(`${API_URL}/trolleys/456/status`, {
-  headers: {
-    'Authorization': `Bearer ${token}`
-  }
-});
-
-const data = await response.json();
-// { trolley_code, status, shelves: [...], summary: {...} }
-```
-
-### WebSocket
-
-```typescript
-import io from 'socket.io-client';
-
-const socket = io(WS_URL, {
-  auth: { token }
-});
-
-// Escuchar eventos
-socket.on('scan_processed', (data) => {
-  // Actualizar UI
-  queryClient.invalidateQueries(['trolley', data.trolley_id]);
-});
-
-socket.on('alert_created', (data) => {
-  // Mostrar notificación
-  toast.error(data.message);
-  // Actualizar panel de alertas
-  setAlerts(prev => [data, ...prev]);
-});
-```
-
----
-
-## Configuración
-
-### Variables de Entorno
-
-Ver [Variables de Entorno](../../docs/setup/env-variables.md).
-
-**Archivo**: `.env.local`
+### 1. Install Dependencies
 
 ```bash
-NEXT_PUBLIC_API_URL=http://localhost:3001/api
-NEXT_PUBLIC_WS_URL=ws://localhost:3001
+npm install
 ```
 
-**Para producción**:
-```bash
-NEXT_PUBLIC_API_URL=https://api.smarttrolley.com/api
-NEXT_PUBLIC_WS_URL=wss://api.smarttrolley.com
-```
+### 2. Configure Environment
 
----
-
-## Componentes Principales
-
-### TrolleyCard
-
-Props:
-- `trolley_id`: ID del trolley
-- `trolley_code`: Código alfanumérico
-- `flight_number`: Número de vuelo
-- `shelves`: Array con estado de cada shelf
-- `onClick`: Handler para ir a detalle
-
-### ShelfCard
-
-Props:
-- `shelf_id`: ID de la shelf
-- `position`: "top" | "middle" | "bottom"
-- `status`: "green" | "yellow" | "red"
-- `last_scan_at`: Timestamp
-- `avg_confidence`: Confianza promedio
-- `active_alerts`: Número de alertas
-
-### AlertPanel
-
-Props:
-- `alerts`: Array de alertas
-- `filter`: "all" | "critical" | "warning"
-- `onResolve`: Handler para marcar como resuelta
-
-### KPICard
-
-Props:
-- `title`: Título de la métrica
-- `value`: Valor numérico
-- `trend`: "+2.3%" o "-1.5%"
-- `status`: "good" | "warning" | "critical"
-
----
-
-## Estilos con Tailwind
-
-### Colores del Sistema
-
-```javascript
-// tailwind.config.js
-module.exports = {
-  theme: {
-    extend: {
-      colors: {
-        'trolley-green': '#10b981',
-        'trolley-yellow': '#f59e0b',
-        'trolley-red': '#ef4444'
-      }
-    }
-  }
-}
-```
-
-### Clases Comunes
-
-```tsx
-// Semáforo
-<div className={`w-4 h-4 rounded-full ${
-  status === 'green' ? 'bg-trolley-green' :
-  status === 'yellow' ? 'bg-trolley-yellow' :
-  'bg-trolley-red'
-}`} />
-
-// Card de KPI
-<div className="border rounded-lg p-4 shadow-md bg-white">
-  <h3 className="text-lg font-semibold mb-2">{title}</h3>
-  <p className="text-3xl font-bold">{value}</p>
-</div>
-```
-
----
-
-## Autenticación
-
-### Flujo de Login
-
-```
-[Página de login]
-  ↓
-[Usuario ingresa username + password]
-  ↓
-[POST /api/auth/login]
-  ↓
-[Backend retorna { token, user }]
-  ↓
-[Guardar token en localStorage]
-  ↓
-[Redirigir a /dashboard]
-```
-
-### Middleware de Protección
-
-```typescript
-// middleware.ts
-export function middleware(request) {
-  const token = request.cookies.get('auth_token');
-  
-  if (!token && !request.url.includes('/login')) {
-    return NextResponse.redirect(new URL('/login', request.url));
-  }
-}
-```
-
----
-
-## Deployment
-
-### Vercel (Recomendado)
+Create `.env.local` with:
 
 ```bash
-# 1. Push a GitHub
-git push origin main
-
-# 2. Conectar repo en vercel.com
-
-# 3. Configurar variables de entorno en Vercel Dashboard
-
-# 4. Deploy automático
+NEXT_PUBLIC_API_URL=http://localhost:4000
+NEXT_PUBLIC_WS_URL=http://localhost:4000
 ```
 
-### Localhost (Para Hackathon)
+## Development
 
 ```bash
 npm run dev
-# Abierto en http://localhost:3000
-
-# Acceso desde tablet en misma WiFi:
-# http://192.168.1.100:3000
 ```
 
----
+Dashboard will be available at `http://localhost:3000`
 
-## Testing
+## Build
 
-### Pruebas Manuales
+```bash
+npm run build
+npm start
+```
 
-1. **Login**: Verificar que autentica correctamente
-2. **Dashboard**: Ver lista de trolleys activos
-3. **Detalle**: Click en trolley, ver shelves y alertas
-4. **WebSocket**: Realizar scan desde móvil, ver actualización en dashboard
-5. **KPIs**: Verificar que métricas se calculan correctamente
+## Pages
 
-### Métricas de Éxito
+### Home (`/`)
 
-- ✅ WebSocket conectado y recibiendo eventos
-- ✅ Dashboard actualiza sin refresh manual
-- ✅ Tiempo de carga inicial <2s
-- ✅ UI responsive en tablet (768px width)
+- Lists all active trolleys
+- Quick navigation to trolley details
+- Link to KPIs dashboard
 
----
+### Trolley Detail (`/trolleys/[id]`)
 
-## Troubleshooting
+- Real-time status of trolley
+- 3 shelf cards (top, middle, bottom) with semáforo (green/yellow/red)
+- Diff tables showing required vs detected items
+- WebSocket integration for live updates
+- Toast notifications for scans and alerts
+- Auto-refresh every 10 seconds as fallback
 
-### WebSocket no conecta
+### KPIs (`/kpis`)
 
-- Verificar `NEXT_PUBLIC_WS_URL` es correcto
-- Verificar backend tiene CORS habilitado para origen del dashboard
-- Revisar logs de conexión en browser console
+- Scans metrics (total, completed, processing, failed)
+- Average confidence score
+- Alerts breakdown (total, active, resolved, critical)
+- Alerts by type distribution
 
-### Dashboard no actualiza
+## Components
 
-- Verificar que `queryClient.invalidateQueries()` se llama en handlers de WebSocket
-- Verificar que React Query tiene `refetchInterval` configurado
+### `StatusPill`
 
-### Gráficas no renderizan
+Visual indicator with colored dot (green/yellow/red)
 
-- Verificar que datos tienen el formato correcto para Recharts
-- Revisar errores en console del browser
+### `ShelfCard`
 
----
+Displays shelf status with:
+- Position and shelf number
+- Status pill
+- Last scan time
+- Confidence percentage
+- Active alerts count
+- Diff table
+- Thumbnail image
 
-## Referencias
+### `DiffTable`
 
-- [Dashboard Next Setup](../../docs/setup/dashboard-next-setup.md) — Guía completa de configuración
-- [Variables de Entorno](../../docs/setup/env-variables.md) — Configuración de URLs
-- [Contratos de API](../../docs/api/contracts.md) — Endpoints disponibles
-- [KPIs y Métricas](../../docs/kpis/kpis-metrics.md) — Definiciones de métricas
+Table showing SKU, required, detected, diff, and type (missing/extra/match/mismatch)
 
+### `AlertBadge`
+
+Badge showing alert count with severity coloring
+
+## WebSocket Events
+
+The dashboard listens to:
+
+### `scan_processed`
+
+Triggered when a scan is completed
+
+```typescript
+{
+  scan_id: number
+  trolley_id: number
+  shelf_id: number
+  flight_id: number
+  items: Array<{ sku: string, qty: number, confidence: number }>
+  diffs: Diff[]
+  confidence_avg: number
+  image_url: string
+  timestamp: string
+}
+```
+
+### `alert_created`
+
+Triggered when a new alert is generated
+
+```typescript
+{
+  alert_id: number
+  scan_id: number
+  type: string
+  severity: 'critical' | 'warning'
+  message: string
+  shelf_id: number
+  trolley_id: number
+  created_at: string
+}
+```
+
+## Features
+
+- ✅ Real-time updates via WebSocket
+- ✅ Auto-refresh as fallback
+- ✅ Toast notifications
+- ✅ Responsive design (desktop/tablet/mobile)
+- ✅ Semáforo color coding (green/yellow/red)
+- ✅ Confidence percentage display
+- ✅ Diff calculation visualization
+- ✅ Image thumbnails
+
+## Architecture
+
+```
+app/
+├── layout.tsx              # Root layout
+├── globals.css             # Global styles
+├── providers.tsx           # React Query & Toast providers
+├── page.tsx                # Home page
+├── trolleys/
+│   └── [id]/
+│       └── page.tsx        # Trolley detail (with WebSocket)
+└── kpis/
+    └── page.tsx            # KPIs dashboard
+
+components/
+├── StatusPill.tsx          # Green/yellow/red indicator
+├── ShelfCard.tsx           # Shelf status card
+├── DiffTable.tsx           # Items diff table
+└── AlertBadge.tsx          # Alert count badge
+
+lib/
+├── api.ts                  # API fetchers & types
+└── socket.ts               # Socket.IO client singleton
+```
+
+## Notes
+
+- Dashboard subscribes to trolley rooms: `trolley:{id}`
+- Query cache invalidated on WebSocket events
+- Fallback polling every 10s if WebSocket fails
+- Images loaded from API `/storage` endpoint
+- Toast notifications persist for 5 seconds
