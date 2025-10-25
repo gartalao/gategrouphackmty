@@ -1,35 +1,29 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import SelectPhoneScreen from './screens/SelectPhoneScreen';
-import ManualCameraScreen from './screens/ManualCameraScreen';
-import AutoCameraScreen from './screens/AutoCameraScreen';
+import OperatorSetupScreen from './screens/OperatorSetupScreen';
+import LiveRecordingScreen from './screens/LiveRecordingScreen';
 
 const Stack = createNativeStackNavigator();
 
 export default function App() {
   return (
     <NavigationContainer>
-      <Stack.Navigator 
-        initialRouteName="SelectPhone"
+      <Stack.Navigator
+        initialRouteName="OperatorSetup"
         screenOptions={{
           headerShown: false, // Sin header para pantalla completa
         }}
       >
-        <Stack.Screen 
-          name="SelectPhone" 
-          component={SelectPhoneScreen}
-          options={{ title: 'Seleccionar Celular' }}
+        <Stack.Screen
+          name="OperatorSetup"
+          component={OperatorSetupScreen}
+          options={{ title: 'Setup de Operador' }}
         />
-        <Stack.Screen 
-          name="ManualCamera" 
-          component={ManualCameraScreen}
-          options={{ title: 'Modo Manual' }}
-        />
-        <Stack.Screen 
-          name="AutoCamera" 
-          component={AutoCameraScreen}
-          options={{ title: 'Modo Automático' }}
+        <Stack.Screen
+          name="LiveRecording"
+          component={LiveRecordingScreen}
+          options={{ title: 'Grabación en Vivo' }}
         />
       </Stack.Navigator>
     </NavigationContainer>

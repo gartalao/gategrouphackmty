@@ -1,5 +1,21 @@
 # Smart Trolley (phone-powered) — Documentación del MVP
 
+---
+
+## 🔄 IMPORTANTE: Transformación del Proyecto en Curso
+
+Este proyecto está en proceso de transformación de un sistema basado en **fotos estáticas con OpenAI** a un sistema de **video en tiempo real con Google Gemini API**.
+
+**📘 Para información sobre la transformación, consulta**: [`TRANSFORMACION_README.md`](./TRANSFORMACION_README.md)
+
+**Documentos de transformación disponibles**:
+- [`GUIA_DE_TRANSFORMACION.md`](./GUIA_DE_TRANSFORMACION.md) - Guía completa de implementación
+- [`TRANSFORMATION_PROMPT.md`](./TRANSFORMATION_PROMPT.md) - Prompt técnico para Cursor AI
+- [`RESUMEN_EJECUTIVO_CAMBIOS.md`](./RESUMEN_EJECUTIVO_CAMBIOS.md) - Resumen ejecutivo
+- [`META_PROMPT_PARA_CHATGPT.md`](./META_PROMPT_PARA_CHATGPT.md) - Template reutilizable
+
+---
+
 ## Resumen Ejecutivo
 
 ### El Problema
