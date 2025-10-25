@@ -1,0 +1,55 @@
+{
+  "name": "smart-trolley-hackmty",
+  "version": "1.0.0",
+  "description": "Smart Trolley MVP for GateGroup HackMTY - Vision-powered Pick & Pack validation system",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:api\" \"npm run dev:dashboard\"",
+    "dev:api": "cd apps/api && npm run dev",
+    "dev:dashboard": "cd apps/dashboard && npm run dev",
+    "dev:mobile": "cd apps/mobile-shelf && npm run dev",
+    "build": "npm run build:api && npm run build:dashboard",
+    "build:api": "cd apps/api && npm run build",
+    "build:dashboard": "cd apps/dashboard && npm run build",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio",
+    "db:seed": "cd apps/api && npm run seed",
+    "test": "npm run test:api",
+    "test:api": "cd apps/api && npm test",
+    "lint": "npm run lint:api && npm run lint:dashboard",
+    "lint:api": "cd apps/api && npm run lint",
+    "lint:dashboard": "cd apps/dashboard && npm run lint",
+    "clean": "rm -rf node_modules apps/*/node_modules packages/*/node_modules",
+    "install:all": "npm install && npm run install:apps",
+    "install:apps": "cd apps/api && npm install && cd ../dashboard && npm install && cd ../mobile-shelf && npm install"
+  },
+  "devDependencies": {
+    "@prisma/client": "^5.22.0",
+    "concurrently": "^8.2.2",
+    "prisma": "^5.22.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "keywords": [
+    "hackathon",
+    "vision-ai",
+    "logistics",
+    "gategroup",
+    "hackmty",
+    "smart-trolley",
+    "pick-pack"
+  ],
+  "author": "GateGroup Smart Trolley Team",
+  "license": "MIT",
+  "dependencies": {
+    "bcrypt": "^6.0.0"
+  }
+}
