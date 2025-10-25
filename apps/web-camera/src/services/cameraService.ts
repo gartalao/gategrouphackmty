@@ -35,6 +35,10 @@ export class CameraService {
    * Inicializa la cámara
    */
   async initialize(videoElement: HTMLVideoElement): Promise<void> {
+    if (!videoElement) {
+      throw new Error('Video element is required');
+    }
+
     this.videoElement = videoElement;
     
     // Crear canvas para captura de frames
@@ -55,6 +59,10 @@ export class CameraService {
         },
         audio: false,
       });
+
+      if (!this.videoElement) {
+        throw new Error('Video element is null');
+      }
 
       this.videoElement.srcObject = this.stream;
       

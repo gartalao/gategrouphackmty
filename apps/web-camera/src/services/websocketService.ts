@@ -1,10 +1,5 @@
 import { io, Socket } from 'socket.io-client';
 
-export interface WebSocketConfig {
-  url: string;
-  token: string;
-}
-
 export interface ProductDetectedEvent {
   event: 'product_detected';
   trolley_id: number;
@@ -13,60 +8,78 @@ export interface ProductDetectedEvent {
   detected_at: string;
   operator_id: number;
   confidence: number;
+  box_2d?: number[];
 }
 
-export interface WebSocketCallbacks {
+export interface WebSocketConfig {
+  url: string;
+  token?: string;
   onConnect?: () => void;
   onDisconnect?: () => void;
   onError?: (error: Error) => void;
   onProductDetected?: (event: ProductDetectedEvent) => void;
 }
 
+export interface StartScanParams {
+  trolleyId: number;
+  operatorId: number;
+}
+
+export interface FrameParams {
+  scanId: number;
+  frameId: string;
+  jpegBase64: string;
+  ts: number;
+}
+
 export class WebSocketService {
   private socket: Socket | null = null;
   private config: WebSocketConfig;
-  private callbacks: WebSocketCallbacks;
   private isConnected = false;
 
-  constructor(config: WebSocketConfig, callbacks: WebSocketCallbacks = {}) {
+  constructor(config: WebSocketConfig) {
     this.config = config;
-    this.callbacks = callbacks;
   }
 
   /**
-   * Conecta al WebSocket
+   * Conecta al WebSocket del backend
    */
   async connect(): Promise<void> {
     return new Promise((resolve, reject) => {
-      this.socket = io(this.config.url, {
-        auth: {
-          token: this.config.token,
-        },
-        transports: ['websocket'],
+      // Extraer solo la URL base (sin /ws al final si existe)
+      const baseUrl = this.config.url.replace(/\/ws$/i, '');
+      
+      this.socket = io(`${baseUrl}/ws`, {
+        auth: this.config.token ? { token: this.config.token } : {},
+        transports: ['websocket', 'polling'],
+        reconnection: true,
+        reconnectionDelay: 1000,
+        reconnectionAttempts: 5,
       });
 
       this.socket.on('connect', () => {
-        console.log('[WebSocket] Connected');
+        console.log('[WebSocket] ✅ Conectado a', baseUrl);
         this.isConnected = true;
-        this.callbacks.onConnect?.();
+        this.config.onConnect?.();
         resolve();
       });
 
-      this.socket.on('disconnect', () => {
-        console.log('[WebSocket] Disconnected');
+      this.socket.on('disconnect', (reason) => {
+        console.log('[WebSocket] ❌ Desconectado:', reason);
         this.isConnected = false;
-        this.callbacks.onDisconnect?.();
+        this.config.onDisconnect?.();
       });
 
       this.socket.on('connect_error', (error) => {
-        console.error('[WebSocket] Connection error:', error);
-        this.callbacks.onError?.(error);
+        console.error('[WebSocket] ❌ Error de conexión:', error);
+        this.config.onError?.(error);
         reject(error);
       });
 
+      // Escuchar evento product_detected del backend
       this.socket.on('product_detected', (event: ProductDetectedEvent) => {
-        console.log('[WebSocket] Product detected:', event);
-        this.callbacks.onProductDetected?.(event);
+        console.log('[WebSocket] 🎯 Producto detectado:', event.product_name);
+        this.config.onProductDetected?.(event);
       });
     });
   }
@@ -83,19 +96,22 @@ export class WebSocketService {
   }
 
   /**
-   * Inicia un nuevo scan
+   * Inicia un nuevo scan (sesión de grabación)
    */
-  async startScan(params: { trolleyId: number; operatorId: number }): Promise<{ scanId: number; status: string }> {
+  async startScan(params: StartScanParams): Promise<{ scanId: number; status: string }> {
     return new Promise((resolve, reject) => {
       if (!this.socket) {
         reject(new Error('Socket not connected'));
         return;
       }
 
+      console.log('[WebSocket] 📡 Enviando start_scan:', params);
+
       this.socket.emit('start_scan', params, (response: any) => {
         if (response.error) {
           reject(new Error(response.error));
         } else {
+          console.log('[WebSocket] ✅ Scan iniciado:', response);
           resolve(response);
         }
       });
@@ -103,14 +119,15 @@ export class WebSocketService {
   }
 
   /**
-   * Envía un frame de video
+   * Envía un frame de video al backend para procesamiento
    */
-  sendFrame(params: { scanId: number; frameId: string; jpegBase64: string }): void {
-    if (!this.socket) {
-      console.warn('[WebSocket] Socket not connected, cannot send frame');
+  sendFrame(params: FrameParams): void {
+    if (!this.socket || !this.isConnected) {
+      console.warn('[WebSocket] ⚠️ No conectado, no se puede enviar frame');
       return;
     }
 
+    // Enviar sin esperar respuesta (fire and forget)
     this.socket.emit('frame', params);
   }
 

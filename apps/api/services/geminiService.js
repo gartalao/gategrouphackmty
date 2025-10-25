@@ -1,113 +1,187 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const fetch = require('node-fetch');
 
 const GEMINI_FAKE = process.env.GEMINI_FAKE === '1';
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
-const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-pro-vision';
-
-let genAI = null;
-let model = null;
-
-if (!GEMINI_FAKE && GEMINI_API_KEY) {
-  genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-  model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
-}
+const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-robotics-er-1.5-preview';
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
 /**
- * Construye el prompt para Gemini con el catálogo de productos
+ * Construye el prompt para Gemini Robotics-ER 1.5
  */
 function buildPrompt(catalog) {
   const productList = catalog
     .map((p, idx) => {
       const keywords = p.detectionKeywords?.join(', ') || '';
-      return `${idx + 1}. "${p.name}" - ${p.visualDescription || 'Sin descripción'} [Keywords: ${keywords}]`;
+      return `${idx + 1}. ${p.name} — ${p.visualDescription || 'Sin descripción'} — keywords: ${keywords}`;
     })
     .join('\n');
 
   return `Eres un sistema de visión EN TIEMPO REAL para catering aéreo.
 
 TAREA:
-Analiza este FRAME de un operador cargando un trolley y decide si el operador está METIENDO alguno de los productos definidos.
+Dado este FRAME de un operador cargando un trolley, decide si el operador está METIENDO alguno de los siguientes productos. Detecta por apariencia visual y texto visible. NO uses ni menciones SKUs, QR o códigos de barras.
 
-REGLAS:
-- Detecta por apariencia visual y texto visible en el empaque.
-- NO uses códigos de barras, SKUs ni QR.
-- Marca detected:true SOLO si la acción es "placing_in_trolley".
-- Si el producto ya está en el trolley o solo se sostiene, responde detected:false.
-- Reporta a lo sumo UN producto por frame.
-
-PRODUCTOS A DETECTAR:
+PRODUCTOS:
 ${productList}
 
-FORMATO DE RESPUESTA ESTRICTO (solo JSON, sin markdown):
-{ "detected": true|false, "product_name": "<nombre_exacto_del_producto>", "confidence": 0.0-1.0, "action": "placing_in_trolley" }
+REGLAS:
+- Responde detected:true SOLO si la acción visible es "placing_in_trolley" (producto entrando al trolley por la mano del operador).
+- Si el producto ya está en el trolley o solo se sostiene, responde detected:false.
+- Devuelve a lo sumo UN producto por frame.
+- Si puedes, devuelve también "box_2d": [ymin, xmin, ymax, xmax] normalizado 0-1000 para el producto detectado.
+- Prohíbe code fences. Respuesta JSON ESTRICTA y SOLO JSON.
 
-Si no detectas ningún producto siendo colocado:
-{ "detected": false }`;
+FORMATO:
+{ "detected": true|false, "product_name": "<nombre_exacto_del_producto>", "confidence": 0.0-1.0, "action": "placing_in_trolley", "box_2d": [ymin, xmin, ymax, xmax] }
+
+Si no detectas producto:
+{ "detected": false }`.trim();
 }
 
 /**
- * Analiza un frame con Gemini (REAL mode)
+ * Parseo robusto de JSON de la respuesta de Gemini
  */
-async function analyzeFrameReal(jpegBase64, catalog, opts) {
-  if (!model) {
-    throw new Error('Gemini model not initialized. Check GEMINI_API_KEY.');
+function safeParseDetection(text) {
+  try {
+    // Intentar parseo directo primero
+    const direct = JSON.parse(text);
+    if (typeof direct === 'object' && 'detected' in direct) {
+      return direct;
+    }
+  } catch (e) {
+    // Continuar con regex
   }
 
-  const prompt = buildPrompt(catalog);
+  // Extraer primer bloque JSON con regex
+  const jsonMatch = text.match(/\{[\s\S]*?\}/);
+  if (!jsonMatch) {
+    console.warn('[Gemini] No JSON found in response:', text.substring(0, 200));
+    return { detected: false };
+  }
 
   try {
-    const result = await model.generateContent([
-      prompt,
-      {
-        inlineData: {
-          mimeType: 'image/jpeg',
-          data: jpegBase64,
-        },
-      },
-    ]);
-
-    const response = await result.response;
-    const text = response.text();
-
-    // Parsear el JSON (Gemini a veces incluye markdown, limpiamos)
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      console.warn('Gemini did not return valid JSON:', text);
-      return { detected: false };
-    }
-
     const parsed = JSON.parse(jsonMatch[0]);
-
-    // Validar threshold
-    if (parsed.detected && parsed.confidence && parsed.confidence < opts.threshold) {
-      console.log(`Detection below threshold: ${parsed.confidence} < ${opts.threshold}`);
+    
+    // Validar campos requeridos
+    if (typeof parsed.detected !== 'boolean') {
       return { detected: false };
     }
 
     return parsed;
   } catch (error) {
-    console.error('Error calling Gemini API:', error);
+    console.error('[Gemini] Failed to parse JSON:', error.message);
     return { detected: false };
   }
 }
 
 /**
- * Analiza un frame con heurística FAKE (para testing)
+ * Analiza un frame con Gemini Robotics-ER 1.5 REST API
+ */
+async function analyzeFrameReal(jpegBase64, catalog, opts) {
+  if (!GEMINI_API_KEY) {
+    throw new Error('GEMINI_API_KEY not configured');
+  }
+
+  const prompt = buildPrompt(catalog);
+
+  const requestBody = {
+    contents: [
+      {
+        parts: [
+          {
+            inlineData: {
+              mimeType: 'image/jpeg',
+              data: jpegBase64,
+            },
+          },
+          {
+            text: prompt,
+          },
+        ],
+      },
+    ],
+    generationConfig: {
+      temperature: 0.2,
+      thinkingConfig: {
+        thinkingBudget: 0, // Latencia mínima
+      },
+    },
+  };
+
+  try {
+    const response = await fetch(`${GEMINI_URL}?key=${GEMINI_API_KEY}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestBody),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('[Gemini] API error:', response.status, errorText);
+      return { detected: false };
+    }
+
+    const json = await response.json();
+
+    // Extraer texto de la respuesta
+    const text =
+      json?.candidates?.[0]?.content?.parts?.map((p) => p.text).join('') || '';
+
+    if (!text) {
+      console.warn('[Gemini] Empty response from API');
+      return { detected: false };
+    }
+
+    // Parseo robusto
+    const parsed = safeParseDetection(text);
+
+    // Validar threshold
+    if (parsed.detected && parsed.confidence && parsed.confidence < opts.threshold) {
+      console.log(
+        `[Gemini] Detection below threshold: ${parsed.confidence} < ${opts.threshold}`
+      );
+      return { detected: false };
+    }
+
+    // Validar acción
+    if (parsed.detected && parsed.action !== 'placing_in_trolley') {
+      console.log(`[Gemini] Wrong action: ${parsed.action}, expected placing_in_trolley`);
+      return { detected: false };
+    }
+
+    return parsed;
+  } catch (error) {
+    console.error('[Gemini] Error calling API:', error.message);
+    return { detected: false };
+  }
+}
+
+/**
+ * Analiza un frame con heurística FAKE (para testing sin API)
  */
 function analyzeFrameFake(frameId, catalog) {
-  // Heurística simple basada en frameId o keywords
   const lowerId = frameId.toLowerCase();
 
+  // Buscar matches en keywords
   for (const product of catalog) {
     const keywords = product.detectionKeywords || [];
     const found = keywords.some((kw) => lowerId.includes(kw.toLowerCase()));
 
     if (found) {
+      const confidence = 0.85 + Math.random() * 0.1;
       return {
         detected: true,
-        productSlug: product.name.toLowerCase().replace(/\s+/g, '_'),
-        confidence: 0.85 + Math.random() * 0.1, // 0.85-0.95
+        product_name: product.name,
+        confidence,
         action: 'placing_in_trolley',
+        box_2d: [
+          Math.floor(300 + Math.random() * 200), // ymin
+          Math.floor(300 + Math.random() * 200), // xmin
+          Math.floor(600 + Math.random() * 200), // ymax
+          Math.floor(600 + Math.random() * 200), // xmax
+        ],
       };
     }
   }
@@ -120,7 +194,7 @@ function analyzeFrameFake(frameId, catalog) {
  */
 async function analyzeFrame(jpegBase64OrFrameId, catalog, opts) {
   opts = opts || { threshold: 0.7 };
-  
+
   if (GEMINI_FAKE) {
     console.log('[FAKE MODE] Using heuristic detection');
     return analyzeFrameFake(jpegBase64OrFrameId, catalog);
@@ -144,4 +218,5 @@ module.exports = {
   buildPrompt,
   analyzeFrame,
   productNameToSlug,
+  safeParseDetection,
 };

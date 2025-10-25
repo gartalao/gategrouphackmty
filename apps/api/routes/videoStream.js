@@ -51,20 +51,25 @@ function initializeVideoStream(io) {
   const wsNamespace = io.of('/ws');
 
   wsNamespace.use((socket, next) => {
-    // Authenticate via query token
+    // Authenticate via query token (OPCIONAL para desarrollo)
     const token = socket.handshake.auth.token || socket.handshake.query.token;
 
-    if (!token) {
-      return next(new Error('Authentication error: no token provided'));
+    if (token) {
+      // Si hay token, validarlo
+      const user = verifyToken(token);
+      if (user) {
+        socket.user = user;
+        console.log(`[WS] User ${user.username} authenticated`);
+      } else {
+        console.warn('[WS] Invalid token provided, continuing without auth');
+        socket.user = { userId: 0, username: 'guest', role: 'operator' };
+      }
+    } else {
+      // Sin token, usar usuario guest para desarrollo
+      console.log('[WS] No token provided, using guest user (dev mode)');
+      socket.user = { userId: 0, username: 'guest', role: 'operator' };
     }
 
-    const user = verifyToken(token);
-    if (!user) {
-      return next(new Error('Authentication error: invalid token'));
-    }
-
-    // Attach user to socket
-    socket.user = user;
     next();
   });
 
@@ -75,13 +80,64 @@ function initializeVideoStream(io) {
     // EVENT: start_scan
     socket.on('start_scan', async (payload, ack) => {
       try {
-        const { trolleyId, operatorId } = payload;
+        let { trolleyId, operatorId } = payload;
+
+        // Verificar/crear trolley si no existe
+        if (trolleyId) {
+          const trolleyExists = await prisma.trolley.findUnique({
+            where: { trolleyId },
+          });
+
+          if (!trolleyExists) {
+            console.log(`[WS] Trolley ${trolleyId} no existe, usando trolley por defecto`);
+            let defaultTrolley = await prisma.trolley.findFirst();
+            
+            if (!defaultTrolley) {
+              defaultTrolley = await prisma.trolley.create({
+                data: {
+                  trolleyCode: `TRLLY-DEV-${Date.now()}`,
+                  status: 'empty',
+                },
+              });
+              console.log(`[WS] Trolley creado: ${defaultTrolley.trolleyCode}`);
+            }
+            
+            trolleyId = defaultTrolley.trolleyId;
+          }
+        }
+
+        // Verificar/crear operator si no existe
+        if (operatorId) {
+          const operatorExists = await prisma.user.findUnique({
+            where: { userId: operatorId },
+          });
+
+          if (!operatorExists) {
+            console.log(`[WS] Operator ${operatorId} no existe, usando operator por defecto`);
+            let defaultOperator = await prisma.user.findFirst();
+            
+            if (!defaultOperator) {
+              const hashedPassword = await require('bcrypt').hash('dev123', 10);
+              defaultOperator = await prisma.user.create({
+                data: {
+                  username: `dev_operator_${Date.now()}`,
+                  passwordHash: hashedPassword,
+                  fullName: 'Dev Operator',
+                  role: 'operator',
+                },
+              });
+              console.log(`[WS] Operator creado: ${defaultOperator.username}`);
+            }
+            
+            operatorId = defaultOperator.userId;
+          }
+        }
 
         // Create new scan
         const scan = await prisma.scan.create({
           data: {
-            trolleyId,
-            operatorId,
+            trolleyId: trolleyId || null,
+            operatorId: operatorId || null,
             status: 'recording',
             startedAt: new Date(),
           },
@@ -130,18 +186,19 @@ function initializeVideoStream(io) {
           threshold: CONFIDENCE_THRESHOLD,
         });
 
-        if (!result.detected || !result.productSlug) {
+        if (!result.detected || !result.product_name) {
           // No detection or below threshold
           return;
         }
 
-        // Find matching product by name (case-insensitive)
+        // Find matching product by name (exact match, case-insensitive)
         const product = products.find(
-          (p) => p.name.toLowerCase().replace(/\s+/g, '_') === result.productSlug
+          (p) => p.name.toLowerCase() === result.product_name.toLowerCase()
         );
 
         if (!product) {
-          console.warn(`[WS] Product not found in catalog: ${result.productSlug}`);
+          console.warn(`[WS] Product not found in catalog: ${result.product_name}`);
+          console.log('[WS] Available products:', products.map(p => p.name).join(', '));
           return;
         }
 
@@ -178,10 +235,11 @@ function initializeVideoStream(io) {
           detected_at: detection.detectedAt,
           operator_id: scan.operatorId,
           confidence: result.confidence,
+          box_2d: result.box_2d || null,
         });
 
         console.log(
-          `[WS] Product detected: ${product.name} (confidence: ${result.confidence})`
+          `[WS] Product detected: ${product.name} (confidence: ${result.confidence?.toFixed(2) || 'N/A'})${result.box_2d ? ' with box' : ''}`
         );
       } catch (error) {
         console.error('[WS] Error processing frame:', error);

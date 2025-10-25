@@ -37,6 +37,7 @@ export const LiveRecording: React.FC<LiveRecordingProps> = ({
   // Referencias a servicios
   const geminiServiceRef = useRef<GeminiLiveService | null>(null);
   const wsServiceRef = useRef<WebSocketService | null>(null);
+  const scanIdRef = useRef<number | null>(null);
   const frameCounterRef = useRef(0);
 
   // Configuración
@@ -53,33 +54,44 @@ export const LiveRecording: React.FC<LiveRecordingProps> = ({
 
   const initializeSession = async () => {
     try {
-      console.log('[LiveRecording] 🚀 Inicializando streaming directo...');
+      console.log('[LiveRecording] 🚀 Conectando al backend vía WebSocket...');
       
-      // Configurar Gemini directo
-      if (!GEMINI_API_KEY) {
-        console.log('[LiveRecording] ⚠️ Sin API key de Gemini, modo demo');
-        setIsConnected(true);
-        setScanId(12345);
-        setGeminiStatus('idle');
-        setBackendStatus('disconnected');
-        return;
-      }
-
-      console.log('[LiveRecording] 🤖 Configurando Gemini directo...');
-      geminiServiceRef.current = new GeminiLiveService({
-        apiKey: GEMINI_API_KEY,
-        model: 'gemini-1.5-flash',
+      // Conectar a WebSocket del backend (server-side processing)
+      const wsService = new WebSocketService({
+        url: WS_URL,
+        onConnect: () => {
+          console.log('[LiveRecording] ✅ WebSocket conectado');
+          setBackendStatus('connected');
+        },
+        onDisconnect: () => {
+          console.log('[LiveRecording] ❌ WebSocket desconectado');
+          setBackendStatus('disconnected');
+        },
+        onProductDetected: handleProductDetected,
       });
-      
+
+      await wsService.connect();
+      wsServiceRef.current = wsService;
+
+      // Iniciar sesión de scan en el backend
+      console.log('[LiveRecording] 🎬 Iniciando sesión de scan...');
+      const response = await wsService.startScan({
+        trolleyId: trolleyId || 1,
+        operatorId: operatorId || 1,
+      });
+
+      scanIdRef.current = response.scanId;
+      setScanId(response.scanId);
       setIsConnected(true);
-      setScanId(12345);
       setGeminiStatus('idle');
-      setBackendStatus('disconnected');
-      console.log('[LiveRecording] ✅ Streaming directo configurado');
+
+      console.log(`[LiveRecording] ✅ Sesión iniciada. Scan ID: ${response.scanId}`);
+      console.log('[LiveRecording] 📡 Backend procesará frames con Gemini server-side');
       
     } catch (error) {
       console.error('[LiveRecording] ❌ Error inicializando:', error);
-      setError(`Error al inicializar: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+      setError(`Error al conectar: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+      setBackendStatus('error');
     }
   };
 
@@ -93,6 +105,9 @@ export const LiveRecording: React.FC<LiveRecordingProps> = ({
     };
 
     setDetections((prev) => [newDetection, ...prev].slice(0, 20)); // Keep last 20
+    setGeminiStatus('success');
+    
+    console.log(`[LiveRecording] ✅ Producto detectado: ${event.product_name} (${Math.round(event.confidence * 100)}%)`);
   };
 
   const handleFrameCapture = async (imageData: string) => {
@@ -108,51 +123,29 @@ export const LiveRecording: React.FC<LiveRecordingProps> = ({
 
       console.log(`[LiveRecording] 📸 Frame ${frameCounterRef.current} capturado a las ${currentTime}`);
 
-      // STREAMING DIRECTO: Cámara → Gemini
-      if (geminiServiceRef.current) {
+      // ENVIAR AL BACKEND VÍA WEBSOCKET (server-side processing)
+      if (wsServiceRef.current && scanIdRef.current) {
         try {
           setGeminiStatus('analyzing');
-          console.log(`[LiveRecording] 🤖 Gemini analizando frame ${frameCounterRef.current}...`);
           
-          const base64Data = imageData.split(',')[1];
+          const base64Data = imageData.split(',')[1]; // Remove data:image/jpeg;base64, prefix
           
-          // Catálogo de productos de ejemplo
-          const productCatalog = [
-            { productId: 1, name: 'Coca Cola 330ml', visualDescription: 'Lata roja de Coca Cola', detectionKeywords: ['coca', 'cola', 'lata', 'roja'] },
-            { productId: 2, name: 'Sandwich Club', visualDescription: 'Sandwich triangular con lechuga', detectionKeywords: ['sandwich', 'club', 'lechuga', 'triangular'] },
-            { productId: 3, name: 'Agua Mineral', visualDescription: 'Botella de agua transparente', detectionKeywords: ['agua', 'botella', 'transparente'] },
-            { productId: 4, name: 'Café Americano', visualDescription: 'Taza de café negro', detectionKeywords: ['cafe', 'americano', 'taza', 'negro'] },
-            { productId: 5, name: 'Galletas Oreo', visualDescription: 'Galletas redondas negras y blancas', detectionKeywords: ['oreo', 'galletas', 'negro', 'blanco'] }
-          ];
+          // Enviar frame al backend vía WebSocket
+          wsServiceRef.current.sendFrame({
+            scanId: scanIdRef.current,
+            frameId,
+            jpegBase64: base64Data,
+            ts: Date.now(),
+          });
 
-          const result = await geminiServiceRef.current.analyzeFrame(
-            base64Data,
-            productCatalog,
-            { threshold: 0.7 }
-          );
-
-          if (result.detected && result.product_name) {
-            setGeminiStatus('success');
-            const newDetection: Detection = {
-              id: `gemini_${Date.now()}`,
-              product_name: result.product_name,
-              detected_at: new Date().toISOString(),
-              confidence: result.confidence || 0.85,
-            };
-
-            setDetections((prev) => [newDetection, ...prev].slice(0, 20));
-            console.log(`[LiveRecording] ✅ Producto detectado: ${result.product_name} (${Math.round((result.confidence || 0.85) * 100)}%)`);
-          } else {
-            setGeminiStatus('idle');
-            console.log(`[LiveRecording] 🔍 No se detectaron productos en frame ${frameCounterRef.current}`);
-          }
-        } catch (geminiError) {
+          console.log(`[LiveRecording] 📡 Frame ${frameCounterRef.current} enviado al backend vía WebSocket`);
+          setGeminiStatus('idle');
+        } catch (error) {
           setGeminiStatus('error');
-          console.log('[LiveRecording] ❌ Error en análisis Gemini:', geminiError);
+          console.error('[LiveRecording] ❌ Error enviando frame:', error);
         }
       } else {
-        console.log(`[LiveRecording] ⚠️ Gemini no configurado, modo demo`);
-        setGeminiStatus('idle');
+        console.log(`[LiveRecording] ⚠️ WebSocket no conectado o scanId no disponible`);
       }
     } catch (error) {
       console.error('[LiveRecording] ❌ Error processing frame:', error);
