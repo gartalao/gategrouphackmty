@@ -1,5 +1,5 @@
 const { PrismaClient } = require('../../../generated/prisma');
-const { analyzeFrame } = require('../services/geminiService');
+const { VideoStreamService } = require('../services/videoStreamService');
 const jwt = require('jsonwebtoken');
 
 const prisma = new PrismaClient();
@@ -7,6 +7,14 @@ const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || 'change_me';
 const CONFIDENCE_THRESHOLD = parseFloat(process.env.DETECTION_CONFIDENCE_THRESHOLD || '0.70');
 const PRODUCT_COOLDOWN_MS = parseInt(process.env.PRODUCT_COOLDOWN_MS || '1200', 10);
+
+// Initialize VideoStreamService
+const videoStreamService = new VideoStreamService({
+  apiKey: process.env.GEMINI_API_KEY || '',
+  model: process.env.GEMINI_MODEL || 'gemini-1.5-flash',
+  threshold: CONFIDENCE_THRESHOLD,
+  frameInterval: 1000, // Process 1 frame per second
+});
 
 // Cooldown tracking: { scanId_productId: lastDetectedTimestamp }
 const detectionCooldowns = new Map();
@@ -87,10 +95,17 @@ function initializeVideoStream(io) {
           },
         });
 
+        // Initialize video stream for this scan
+        videoStreamService.startStream(`scan_${scan.scanId}`, {
+          trolleyId,
+          operatorId,
+          scanId: scan.scanId,
+        });
+
         // Join trolley room for broadcasts
         socket.join(`trolley_${trolleyId}`);
 
-        console.log(`[WS] Scan ${scan.scanId} started for trolley ${trolleyId}`);
+        console.log(`[WS] Scan ${scan.scanId} started for trolley ${trolleyId} (video stream initialized)`);
 
         ack?.({ scanId: scan.scanId, status: 'recording' });
       } catch (error) {
@@ -99,7 +114,7 @@ function initializeVideoStream(io) {
       }
     });
 
-    // EVENT: frame
+    // EVENT: frame - Real-time video frame processing
     socket.on('frame', async (payload) => {
       try {
         const { scanId, frameId, jpegBase64 } = payload;
@@ -125,29 +140,34 @@ function initializeVideoStream(io) {
           },
         });
 
-        // Analyze frame with Gemini
-        const result = await analyzeFrame(jpegBase64, products, {
-          threshold: CONFIDENCE_THRESHOLD,
-        });
+        // Process frame with video stream service (includes context and throttling)
+        const { result, shouldStore } = await videoStreamService.processFrame(
+          `scan_${scanId}`,
+          jpegBase64,
+          products
+        );
 
-        if (!result.detected || !result.productSlug) {
-          // No detection or below threshold
+        if (!result.detected || !result.product_name || !shouldStore) {
+          // No detection or duplicate, skip storing but might emit for UI
+          if (result.detected && result.product_name) {
+            console.log(`[WS] Frame processed but not stored (duplicate/low confidence)`);
+          }
           return;
         }
 
         // Find matching product by name (case-insensitive)
         const product = products.find(
-          (p) => p.name.toLowerCase().replace(/\s+/g, '_') === result.productSlug
+          (p) => p.name.toLowerCase() === result.product_name?.toLowerCase()
         );
 
         if (!product) {
-          console.warn(`[WS] Product not found in catalog: ${result.productSlug}`);
+          console.warn(`[WS] Product not found in catalog: ${result.product_name}`);
           return;
         }
 
         // Check cooldown
         if (isInCooldown(scanId, product.productId)) {
-          console.log(`[WS] Product ${product.name} in cooldown, skipping`);
+          console.log(`[WS] Product ${product.name} in cooldown, skipping storage`);
           return;
         }
 
@@ -173,15 +193,17 @@ function initializeVideoStream(io) {
         wsNamespace.to(`trolley_${scan.trolleyId}`).emit('product_detected', {
           event: 'product_detected',
           trolley_id: scan.trolleyId,
+          scan_id: scanId,
           product_id: product.productId,
           product_name: product.name,
           detected_at: detection.detectedAt,
           operator_id: scan.operatorId,
           confidence: result.confidence,
+          frame_id: frameId,
         });
 
         console.log(
-          `[WS] Product detected: ${product.name} (confidence: ${result.confidence})`
+          `[WS] ✓ Product detected: ${product.name} (confidence: ${result.confidence.toFixed(2)})`
         );
       } catch (error) {
         console.error('[WS] Error processing frame:', error);
@@ -193,6 +215,12 @@ function initializeVideoStream(io) {
       try {
         const { scanId } = payload;
 
+        // Get stream stats before stopping
+        const stats = videoStreamService.getStreamStats(`scan_${scanId}`);
+        
+        // Stop video stream
+        videoStreamService.stopStream(`scan_${scanId}`);
+
         const updated = await prisma.scan.update({
           where: { scanId },
           data: {
@@ -201,9 +229,13 @@ function initializeVideoStream(io) {
           },
         });
 
-        console.log(`[WS] Scan ${scanId} ended`);
+        console.log(`[WS] Scan ${scanId} ended (processed ${stats?.frameCount || 0} frames)`);
 
-        ack?.({ status: 'completed', endedAt: updated.endedAt });
+        ack?.({ 
+          status: 'completed', 
+          endedAt: updated.endedAt,
+          frameCount: stats?.frameCount || 0,
+        });
       } catch (error) {
         console.error('[WS] Error ending scan:', error);
         ack?.({ error: 'Failed to end scan' });

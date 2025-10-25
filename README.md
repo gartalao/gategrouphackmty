@@ -49,7 +49,7 @@ El sistema utiliza:
 
 | Componente | Tecnología |
 |------------|-----------|
-| **Mobile** | React Native + Expo (Android kiosk mode) |
+| **Web App** | React + Vite + Gemini Live API (Browser-based) |
 | **Backend** | Node.js + Express + Neon Postgres |
 | **Visión LLM** | Modelo multimodal con salida JSON Schema |
 | **Web Dashboard** | Next.js + Tailwind CSS |
@@ -119,7 +119,7 @@ graph LR
 #### ⚙️ Configuración
 - [Neon Postgres](docs/setup/neon-postgres.md)
 - [Variables de Entorno](docs/setup/env-variables.md)
-- [Mobile Expo Setup](docs/setup/mobile-expo-setup.md)
+- [Web Camera Setup](apps/web-camera/README.md)
 - [Dashboard Next Setup](docs/setup/dashboard-next-setup.md)
 - [API Express Setup](docs/setup/api-express-setup.md)
 
@@ -150,7 +150,7 @@ graph LR
 
 ### Componentes del Sistema
 
-- [Mobile Shelf App](apps/mobile-shelf/README.md) — Aplicación Android para captura en cada repisa
+- [Web Camera App](apps/web-camera/README.md) — Aplicación web para captura en tiempo real con Gemini Live API
 - [Dashboard Web](apps/dashboard/README.md) — Panel de control y monitoreo
 - [API Backend](apps/api/README.md) — Servidor de procesamiento y lógica de negocio
 - [UI Package](packages/ui/README.md) — Componentes compartidos (opcional)

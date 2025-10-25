@@ -6,16 +6,18 @@
   "workspaces": [
     "apps/api",
     "apps/dashboard",
+    "apps/web-camera",
     "packages/*"
   ],
   "scripts": {
-    "dev": "concurrently \"npm run dev:api\" \"npm run dev:dashboard\"",
+    "dev": "concurrently \"npm run dev:api\" \"npm run dev:dashboard\" \"npm run dev:web-camera\"",
     "dev:api": "cd apps/api && npm run dev",
     "dev:dashboard": "cd apps/dashboard && npm run dev",
-    "dev:mobile": "cd apps/mobile-shelf && npm run dev",
-    "build": "npm run build:api && npm run build:dashboard",
+    "dev:web-camera": "cd apps/web-camera && npm run dev",
+    "build": "npm run build:api && npm run build:dashboard && npm run build:web-camera",
     "build:api": "cd apps/api && npm run build",
     "build:dashboard": "cd apps/dashboard && npm run build",
+    "build:web-camera": "cd apps/web-camera && npm run build",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
@@ -28,7 +30,7 @@
     "lint:dashboard": "cd apps/dashboard && npm run lint",
     "clean": "rm -rf node_modules apps/*/node_modules packages/*/node_modules",
     "install:all": "npm install && npm run install:apps",
-    "install:apps": "cd apps/api && npm install && cd ../dashboard && npm install && cd ../mobile-shelf && npm install"
+    "install:apps": "cd apps/api && npm install && cd ../dashboard && npm install && cd ../web-camera && npm install"
   },
   "devDependencies": {
     "@prisma/client": "^5.22.0",
