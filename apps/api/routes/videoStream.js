@@ -1,7 +1,6 @@
-import { Server as SocketIOServer, Socket } from 'socket.io';
-import { PrismaClient } from '../../../generated/prisma';
-import { analyzeFrame } from '../services/geminiService';
-import jwt from 'jsonwebtoken';
+const { PrismaClient } = require('../../../generated/prisma');
+const { analyzeFrame } = require('../services/geminiService');
+const jwt = require('jsonwebtoken');
 
 const prisma = new PrismaClient();
 
@@ -10,36 +9,14 @@ const CONFIDENCE_THRESHOLD = parseFloat(process.env.DETECTION_CONFIDENCE_THRESHO
 const PRODUCT_COOLDOWN_MS = parseInt(process.env.PRODUCT_COOLDOWN_MS || '1200', 10);
 
 // Cooldown tracking: { scanId_productId: lastDetectedTimestamp }
-const detectionCooldowns = new Map<string, number>();
-
-interface AuthPayload {
-  userId: number;
-  username: string;
-  role: string;
-}
-
-interface StartScanPayload {
-  trolleyId: number;
-  operatorId: number;
-}
-
-interface FramePayload {
-  scanId: number;
-  frameId: string;
-  jpegBase64: string;
-  ts: number; // client timestamp
-}
-
-interface EndScanPayload {
-  scanId: number;
-}
+const detectionCooldowns = new Map();
 
 /**
  * Verify JWT token from handshake
  */
-function verifyToken(token: string): AuthPayload | null {
+function verifyToken(token) {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as AuthPayload;
+    const decoded = jwt.verify(token, JWT_SECRET);
     return decoded;
   } catch (error) {
     console.error('JWT verification failed:', error);
@@ -50,7 +27,7 @@ function verifyToken(token: string): AuthPayload | null {
 /**
  * Check if product is in cooldown
  */
-function isInCooldown(scanId: number, productId: number): boolean {
+function isInCooldown(scanId, productId) {
   const key = `${scanId}_${productId}`;
   const lastDetected = detectionCooldowns.get(key);
   if (!lastDetected) return false;
@@ -62,7 +39,7 @@ function isInCooldown(scanId: number, productId: number): boolean {
 /**
  * Set cooldown for product
  */
-function setCooldown(scanId: number, productId: number): void {
+function setCooldown(scanId, productId) {
   const key = `${scanId}_${productId}`;
   detectionCooldowns.set(key, Date.now());
 }
@@ -70,7 +47,7 @@ function setCooldown(scanId: number, productId: number): void {
 /**
  * Initialize WebSocket server
  */
-export function initializeVideoStream(io: SocketIOServer): void {
+function initializeVideoStream(io) {
   const wsNamespace = io.of('/ws');
 
   wsNamespace.use((socket, next) => {
@@ -81,22 +58,22 @@ export function initializeVideoStream(io: SocketIOServer): void {
       return next(new Error('Authentication error: no token provided'));
     }
 
-    const user = verifyToken(token as string);
+    const user = verifyToken(token);
     if (!user) {
       return next(new Error('Authentication error: invalid token'));
     }
 
     // Attach user to socket
-    (socket as any).user = user;
+    socket.user = user;
     next();
   });
 
-  wsNamespace.on('connection', (socket: Socket) => {
-    const user = (socket as any).user as AuthPayload;
+  wsNamespace.on('connection', (socket) => {
+    const user = socket.user;
     console.log(`[WS] User ${user.username} connected (${socket.id})`);
 
     // EVENT: start_scan
-    socket.on('start_scan', async (payload: StartScanPayload, ack) => {
+    socket.on('start_scan', async (payload, ack) => {
       try {
         const { trolleyId, operatorId } = payload;
 
@@ -123,7 +100,7 @@ export function initializeVideoStream(io: SocketIOServer): void {
     });
 
     // EVENT: frame
-    socket.on('frame', async (payload: FramePayload) => {
+    socket.on('frame', async (payload) => {
       try {
         const { scanId, frameId, jpegBase64 } = payload;
 
@@ -212,7 +189,7 @@ export function initializeVideoStream(io: SocketIOServer): void {
     });
 
     // EVENT: end_scan
-    socket.on('end_scan', async (payload: EndScanPayload, ack) => {
+    socket.on('end_scan', async (payload, ack) => {
       try {
         const { scanId } = payload;
 
@@ -240,4 +217,6 @@ export function initializeVideoStream(io: SocketIOServer): void {
 
   console.log('[WS] Video stream namespace initialized at /ws');
 }
+
+module.exports = { initializeVideoStream };
 

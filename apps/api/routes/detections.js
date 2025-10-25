@@ -1,5 +1,5 @@
-import express, { Request, Response } from 'express';
-import { PrismaClient } from '../../../generated/prisma';
+const express = require('express');
+const { PrismaClient } = require('../../../generated/prisma');
 
 const router = express.Router();
 const prisma = new PrismaClient();
@@ -8,7 +8,7 @@ const prisma = new PrismaClient();
  * GET /trolleys/:id/realtime-status
  * Returns product counts for the active scan of a trolley
  */
-router.get('/trolleys/:id/realtime-status', async (req: Request, res: Response) => {
+router.get('/trolleys/:id/realtime-status', async (req, res) => {
   try {
     const trolleyId = parseInt(req.params.id, 10);
 
@@ -89,11 +89,11 @@ router.get('/trolleys/:id/realtime-status', async (req: Request, res: Response) 
  * GET /trolleys/:id/detections
  * Returns paginated list of all detections for a trolley
  */
-router.get('/trolleys/:id/detections', async (req: Request, res: Response) => {
+router.get('/trolleys/:id/detections', async (req, res) => {
   try {
     const trolleyId = parseInt(req.params.id, 10);
-    const page = parseInt(req.query.page as string, 10) || 1;
-    const limit = parseInt(req.query.limit as string, 10) || 50;
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 50;
     const skip = (page - 1) * limit;
 
     // Get all scans for this trolley
@@ -207,7 +207,7 @@ router.get('/trolleys/:id/detections', async (req: Request, res: Response) => {
  * GET /scans/:id/summary
  * Returns summary of a specific scan
  */
-router.get('/scans/:id/summary', async (req: Request, res: Response) => {
+router.get('/scans/:id/summary', async (req, res) => {
   try {
     const scanId = parseInt(req.params.id, 10);
 
@@ -290,5 +290,5 @@ router.get('/scans/:id/summary', async (req: Request, res: Response) => {
   }
 });
 
-export default router;
+module.exports = router;
 

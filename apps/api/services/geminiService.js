@@ -1,24 +1,11 @@
-import { GenerativeModel, GoogleGenerativeAI } from '@google/generative-ai';
-
-interface ProductCatalogItem {
-  name: string;
-  visualDescription?: string;
-  detectionKeywords?: string[];
-}
-
-interface DetectionResult {
-  detected: boolean;
-  productSlug?: string;
-  confidence?: number;
-  action?: 'placing_in_trolley' | 'holding' | 'already_placed';
-}
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const GEMINI_FAKE = process.env.GEMINI_FAKE === '1';
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || '';
 const GEMINI_MODEL = process.env.GEMINI_MODEL || 'gemini-pro-vision';
 
-let genAI: GoogleGenerativeAI | null = null;
-let model: GenerativeModel | null = null;
+let genAI = null;
+let model = null;
 
 if (!GEMINI_FAKE && GEMINI_API_KEY) {
   genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
@@ -28,7 +15,7 @@ if (!GEMINI_FAKE && GEMINI_API_KEY) {
 /**
  * Construye el prompt para Gemini con el catálogo de productos
  */
-export function buildPrompt(catalog: ProductCatalogItem[]): string {
+function buildPrompt(catalog) {
   const productList = catalog
     .map((p, idx) => {
       const keywords = p.detectionKeywords?.join(', ') || '';
@@ -61,11 +48,7 @@ Si no detectas ningún producto siendo colocado:
 /**
  * Analiza un frame con Gemini (REAL mode)
  */
-async function analyzeFrameReal(
-  jpegBase64: string,
-  catalog: ProductCatalogItem[],
-  opts: { threshold: number }
-): Promise<DetectionResult> {
+async function analyzeFrameReal(jpegBase64, catalog, opts) {
   if (!model) {
     throw new Error('Gemini model not initialized. Check GEMINI_API_KEY.');
   }
@@ -93,7 +76,7 @@ async function analyzeFrameReal(
       return { detected: false };
     }
 
-    const parsed: DetectionResult = JSON.parse(jsonMatch[0]);
+    const parsed = JSON.parse(jsonMatch[0]);
 
     // Validar threshold
     if (parsed.detected && parsed.confidence && parsed.confidence < opts.threshold) {
@@ -111,10 +94,7 @@ async function analyzeFrameReal(
 /**
  * Analiza un frame con heurística FAKE (para testing)
  */
-function analyzeFrameFake(
-  frameId: string,
-  catalog: ProductCatalogItem[]
-): DetectionResult {
+function analyzeFrameFake(frameId, catalog) {
   // Heurística simple basada en frameId o keywords
   const lowerId = frameId.toLowerCase();
 
@@ -138,11 +118,9 @@ function analyzeFrameFake(
 /**
  * Punto de entrada principal para analizar un frame
  */
-export async function analyzeFrame(
-  jpegBase64OrFrameId: string,
-  catalog: ProductCatalogItem[],
-  opts: { threshold: number } = { threshold: 0.7 }
-): Promise<DetectionResult> {
+async function analyzeFrame(jpegBase64OrFrameId, catalog, opts) {
+  opts = opts || { threshold: 0.7 };
+  
   if (GEMINI_FAKE) {
     console.log('[FAKE MODE] Using heuristic detection');
     return analyzeFrameFake(jpegBase64OrFrameId, catalog);
@@ -154,7 +132,7 @@ export async function analyzeFrame(
 /**
  * Resolver nombre de producto a slug
  */
-export function productNameToSlug(name: string): string {
+function productNameToSlug(name) {
   return name
     .toLowerCase()
     .trim()
@@ -162,3 +140,8 @@ export function productNameToSlug(name: string): string {
     .replace(/[^\w]/g, '');
 }
 
+module.exports = {
+  buildPrompt,
+  analyzeFrame,
+  productNameToSlug,
+};
