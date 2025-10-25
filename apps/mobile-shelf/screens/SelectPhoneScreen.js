@@ -1,16 +1,22 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function SelectPhoneScreen({ navigation }) {
+  const [mode, setMode] = useState('auto'); // 'auto' o 'manual'
+
   const handleSelectPhone = async (shelfId) => {
     try {
       // Guardar el shelf_id en AsyncStorage
       await AsyncStorage.setItem('shelf_id', shelfId.toString());
-      console.log(`✅ Celular ${shelfId} seleccionado`);
+      console.log(`✅ Celular ${shelfId} seleccionado en modo ${mode}`);
       
-      // Navegar a la pantalla de cámara manual
-      navigation.navigate('ManualCamera');
+      // Navegar según el modo seleccionado
+      if (mode === 'auto') {
+        navigation.navigate('AutoCamera');
+      } else {
+        navigation.navigate('ManualCamera');
+      }
     } catch (error) {
       console.error('Error guardando shelf_id:', error);
     }
@@ -20,6 +26,29 @@ export default function SelectPhoneScreen({ navigation }) {
     <View style={styles.container}>
       <Text style={styles.title}>Smart Trolley Setup</Text>
       <Text style={styles.subtitle}>¿Qué celular soy?</Text>
+      
+      {/* Toggle de modo */}
+      <View style={styles.modeToggleContainer}>
+        <TouchableOpacity 
+          style={[styles.modeButton, mode === 'auto' && styles.modeButtonActive]}
+          onPress={() => setMode('auto')}
+        >
+          <Text style={[styles.modeButtonText, mode === 'auto' && styles.modeButtonTextActive]}>
+            🤖 Automático
+          </Text>
+          <Text style={styles.modeButtonSubtext}>Cada 5 segundos</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={[styles.modeButton, mode === 'manual' && styles.modeButtonActive]}
+          onPress={() => setMode('manual')}
+        >
+          <Text style={[styles.modeButtonText, mode === 'manual' && styles.modeButtonTextActive]}>
+            👆 Manual
+          </Text>
+          <Text style={styles.modeButtonSubtext}>Cuando presiones</Text>
+        </TouchableOpacity>
+      </View>
       
       <View style={styles.buttonContainer}>
         <TouchableOpacity 
@@ -69,7 +98,39 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 20,
     color: '#666',
-    marginBottom: 40,
+    marginBottom: 20,
+  },
+  modeToggleContainer: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 30,
+  },
+  modeButton: {
+    backgroundColor: '#fff',
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#ddd',
+    alignItems: 'center',
+    minWidth: 150,
+  },
+  modeButtonActive: {
+    backgroundColor: '#007AFF',
+    borderColor: '#007AFF',
+  },
+  modeButtonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  modeButtonTextActive: {
+    color: '#fff',
+  },
+  modeButtonSubtext: {
+    fontSize: 12,
+    color: '#999',
+    marginTop: 4,
   },
   buttonContainer: {
     width: '100%',
