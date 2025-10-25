@@ -10,7 +10,7 @@ import { errorHandler } from './middleware/error';
 import healthRoutes from './routes/health';
 import authRoutes from './routes/auth';
 import flightRoutes from './routes/flights';
-import scanRoutes from './routes/scans';
+import scanRoutes from './routes/scans.gemini'; // Using Gemini detector
 import trolleyRoutes from './routes/trolleys';
 import kpisRoutes from './routes/kpis';
 

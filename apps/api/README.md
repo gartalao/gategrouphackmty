@@ -1,17 +1,18 @@
 # Smart Trolley API
 
-Backend Express API with Vision LLM integration for Smart Trolley system.
+Backend Express API with **Gemini Robotics-ER** real-time detection for Smart Trolley system.
 
 ## Stack
 
 - **Runtime**: Node.js 18+
 - **Framework**: Express + TypeScript
 - **Database**: PostgreSQL (Neon) via Prisma
-- **Vision**: OpenAI GPT-4o/GPT-4o-mini
+- **Vision**: Google Gemini Robotics-ER 1.5 (with Live API support)
 - **Real-time**: Socket.IO
 - **Image Processing**: Sharp
 - **Validation**: Zod + Ajv
 - **Logging**: Pino
+- **Object Tracking**: Custom IoU-based tracker with NMS
 
 ## Setup
 
@@ -33,7 +34,8 @@ Create `.env` file with:
 
 ```bash
 DATABASE_URL="postgresql://user:password@host:5432/database?sslmode=require"
-OPENAI_API_KEY="sk-proj-..."
+GEMINI_API_KEY="AIzaSy..."
+GEMINI_MODEL_ID="gemini-robotics-er-1.5-preview"
 PORT=4000
 NODE_ENV=development
 STORAGE_DIR=./storage

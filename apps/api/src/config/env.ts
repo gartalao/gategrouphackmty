@@ -5,7 +5,9 @@ config();
 
 const envSchema = z.object({
   DATABASE_URL: z.string().url(),
-  OPENAI_API_KEY: z.string().min(1),
+  OPENAI_API_KEY: z.string().min(1).optional(), // Keep for backward compatibility
+  GEMINI_API_KEY: z.string().min(1),
+  GEMINI_MODEL_ID: z.string().default('gemini-robotics-er-1.5-preview'),
   PORT: z.string().default('4000'),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   STORAGE_DIR: z.string().default('./storage'),
@@ -27,4 +29,3 @@ export const env = {
 };
 
 export type Env = typeof env;
-

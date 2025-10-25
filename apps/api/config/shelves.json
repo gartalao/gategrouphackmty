@@ -1,0 +1,36 @@
+[
+  {
+    "shelfId": 1,
+    "shelfNumber": 1,
+    "position": "top",
+    "roi": {
+      "y0": 100,
+      "x0": 50,
+      "y1": 900,
+      "x1": 950
+    }
+  },
+  {
+    "shelfId": 2,
+    "shelfNumber": 2,
+    "position": "middle",
+    "roi": {
+      "y0": 100,
+      "x0": 50,
+      "y1": 900,
+      "x1": 950
+    }
+  },
+  {
+    "shelfId": 3,
+    "shelfNumber": 3,
+    "position": "bottom",
+    "roi": {
+      "y0": 100,
+      "x0": 50,
+      "y1": 900,
+      "x1": 950
+    }
+  }
+]
+
