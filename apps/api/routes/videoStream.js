@@ -151,6 +151,15 @@ function initializeVideoStream(io) {
     const user = socket.user;
     console.log(`[WS] User ${user.username} connected (${socket.id})`);
 
+    // EVENT: join_trolley_room (para dashboard)
+    socket.on('join_trolley_room', (payload) => {
+      const { trolleyId } = payload;
+      if (trolleyId) {
+        socket.join(`trolley_${trolleyId}`);
+        console.log(`[WS] Dashboard joined trolley room: trolley_${trolleyId}`);
+      }
+    });
+
     // EVENT: start_scan
     socket.on('start_scan', async (payload, ack) => {
       try {
@@ -362,23 +371,8 @@ function initializeVideoStream(io) {
                 },
               });
 
-              // Emit con indicador de return scan
-              if (trolleyId) {
-                wsNamespace.to(`trolley_${trolleyId}`).emit('product_detected', {
-                  event: 'product_detected',
-                  scan_type: 'return',
-                  trolley_id: trolleyId,
-                  product_id: product.productId,
-                  product_name: product.name,
-                  detected_at: detection.detectedAt,
-                  operator_id: scan.operatorId,
-                  confidence: confidence,
-                  box_2d: box,
-                });
-              }
-              
-              // También emitir al socket directamente
-              socket.emit('product_detected', {
+              // Emitir evento de return scan a TODOS los clientes conectados
+              const returnEvent = {
                 event: 'product_detected',
                 scan_type: 'return',
                 trolley_id: trolleyId,
@@ -388,7 +382,14 @@ function initializeVideoStream(io) {
                 operator_id: scan.operatorId,
                 confidence: confidence,
                 box_2d: box,
-              });
+              };
+              
+              // Emitir a todos los clientes conectados
+              wsNamespace.emit('product_detected', returnEvent);
+              console.log(`[WS] 📡 Evento return product_detected emitido a TODOS los clientes: ${product.name}`);
+              
+              // También emitir al socket directamente (para compatibilidad)
+              socket.emit('product_detected', returnEvent);
 
               console.log(
                 `[WS] ✅ [RETURN] Producto registrado: ${product.name} (confidence: ${confidence.toFixed(2)})`
@@ -409,23 +410,8 @@ function initializeVideoStream(io) {
                 },
               });
 
-              // Emit to trolley room si hay trolleyId
-              if (trolleyId) {
-                wsNamespace.to(`trolley_${trolleyId}`).emit('product_detected', {
-                  event: 'product_detected',
-                  scan_type: 'load',
-                  trolley_id: trolleyId,
-                  product_id: product.productId,
-                  product_name: product.name,
-                  detected_at: detection.detectedAt,
-                  operator_id: scan.operatorId,
-                  confidence: confidence,
-                  box_2d: box,
-                });
-              }
-              
-              // También emitir al socket directamente
-              socket.emit('product_detected', {
+              // Emitir evento a TODOS los clientes conectados (incluyendo dashboard)
+              const productEvent = {
                 event: 'product_detected',
                 scan_type: 'load',
                 trolley_id: trolleyId,
@@ -435,7 +421,14 @@ function initializeVideoStream(io) {
                 operator_id: scan.operatorId,
                 confidence: confidence,
                 box_2d: box,
-              });
+              };
+              
+              // Emitir a todos los clientes conectados
+              wsNamespace.emit('product_detected', productEvent);
+              console.log(`[WS] 📡 Evento product_detected emitido a TODOS los clientes: ${product.name}`);
+              
+              // También emitir al socket directamente (para compatibilidad)
+              socket.emit('product_detected', productEvent);
 
               console.log(
                 `[WS] ✅ [LOAD] Producto registrado por PRIMERA VEZ en sesión: ${product.name} (confidence: ${confidence.toFixed(2)})`
@@ -482,16 +475,39 @@ function initializeVideoStream(io) {
     socket.on('start_return_scan', async (payload, ack) => {
       try {
         let { scanId, trolleyId, operatorId } = payload;
+        
+        console.log(`[WS] 🔄 Iniciando return scan para scanId: ${scanId}`);
+        console.log(`[WS] 📊 Parámetros recibidos:`, { scanId, trolleyId, operatorId });
+
+        // Verificar que prisma está disponible
+        if (!prisma) {
+          console.error('[WS] ❌ Prisma client no está disponible');
+          return ack?.({ error: 'Database connection not available' });
+        }
 
         // Verificar que el scan original existe
-        const originalScan = await prisma.scan.findUnique({
-          where: { scanId },
-        });
+        console.log(`[WS] 🔍 Buscando scan original con ID: ${scanId}`);
+        let originalScan;
+        try {
+          originalScan = await prisma.scan.findUnique({
+            where: { scanId },
+          });
+        } catch (dbError) {
+          console.error('[WS] ❌ Error consultando base de datos:', dbError);
+          return ack?.({ error: `Database error: ${dbError.message}` });
+        }
 
         if (!originalScan) {
-          console.error('[WS] Original scan not found:', scanId);
+          console.error('[WS] ❌ Original scan not found:', scanId);
           return ack?.({ error: 'Original scan not found' });
         }
+        
+        console.log(`[WS] ✅ Scan original encontrado:`, {
+          scanId: originalScan.scanId,
+          trolleyId: originalScan.trolleyId,
+          operatorId: originalScan.operatorId,
+          status: originalScan.status
+        });
 
         // Verificar si ya existe un return scan para este scan
         const existingReturnScan = await prisma.returnScan.findUnique({
@@ -507,49 +523,26 @@ function initializeVideoStream(io) {
           });
         }
 
-        // Crear return scan
-        // Verificar que trolleyId existe en DB antes de usarlo
-        const trolleyIdToUse = trolleyId || originalScan.trolleyId;
-        const operatorIdToUse = operatorId || originalScan.operatorId;
+        // Crear return scan - Usar IDs del scan original para evitar problemas de DB
+        const trolleyIdToUse = originalScan.trolleyId; // Usar trolley del scan original
+        const operatorIdToUse = originalScan.operatorId; // Usar operator del scan original
         
-        let validTrolleyId = null;
-        if (trolleyIdToUse) {
-          const trolleyExists = await prisma.trolley.findUnique({
-            where: { trolleyId: trolleyIdToUse },
-          });
-          if (trolleyExists) {
-            validTrolleyId = trolleyIdToUse;
-          } else {
-            console.warn(`[WS] ⚠️ Trolley ${trolleyIdToUse} no existe, creando return scan sin trolleyId`);
-          }
-        }
-        
-        let validOperatorId = null;
-        if (operatorIdToUse) {
-          const operatorExists = await prisma.user.findUnique({
-            where: { userId: operatorIdToUse },
-          });
-          if (operatorExists) {
-            validOperatorId = operatorIdToUse;
-          } else {
-            console.warn(`[WS] ⚠️ Operator ${operatorIdToUse} no existe, creando return scan sin operatorId`);
-          }
-        }
+        console.log(`[WS] 🔄 Creando return scan para scan original ${scanId}`);
+        console.log(`[WS] 📊 Usando trolleyId: ${trolleyIdToUse}, operatorId: ${operatorIdToUse}`);
         
         const returnScan = await prisma.returnScan.create({
           data: {
             scanId,
-            ...(validTrolleyId && { trolleyId: validTrolleyId }),
-            ...(validOperatorId && { operatorId: validOperatorId }),
+            trolleyId: trolleyIdToUse,
+            operatorId: operatorIdToUse,
             status: 'recording',
             startedAt: new Date(),
           },
         });
 
-        // Join trolley room si hay trolleyId válido
-        const finalTrolleyId = trolleyId || originalScan.trolleyId;
-        if (finalTrolleyId) {
-          socket.join(`trolley_${finalTrolleyId}`);
+        // Join trolley room si hay trolleyId
+        if (trolleyIdToUse) {
+          socket.join(`trolley_${trolleyIdToUse}`);
         }
 
         console.log(`[WS] ✅ Return Scan ${returnScan.returnScanId} started for original scan ${scanId}`);
@@ -560,8 +553,13 @@ function initializeVideoStream(io) {
           status: 'recording' 
         });
       } catch (error) {
-        console.error('[WS] Error starting return scan:', error);
-        ack?.({ error: 'Failed to start return scan' });
+        console.error('[WS] ❌ Error starting return scan:', error);
+        console.error('[WS] 📝 Error details:', {
+          message: error.message,
+          stack: error.stack,
+          payload: payload
+        });
+        ack?.({ error: `Failed to start return scan: ${error.message}` });
       }
     });
 

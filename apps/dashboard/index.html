@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Trolley Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  </head>
+<body class="bg-gray-50">
+    <div class="min-h-screen">
+        <!-- Header -->
+        <div class="bg-white border-b border-gray-300 px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-xl font-semibold text-gray-900">🚀 Smart Trolley Dashboard</h1>
+                    <p class="text-sm text-gray-500">Monitoreo en tiempo real</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div id="connection-status" class="flex items-center gap-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full" id="status-dot"></div>
+                        <span class="text-sm text-gray-600" id="status-text">Desconectado</span>
+                    </div>
+                    <a href="http://localhost:3002" target="_blank" 
+                       class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors">
+                        🌐 Web Camera App
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="p-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- KPIs -->
+                <div class="lg:col-span-1">
+                    <div class="bg-white rounded-lg border border-gray-300 p-6 mb-6">
+                        <h2 class="text-lg font-semibold text-gray-900 mb-4">📊 Métricas</h2>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">Productos Detectados</span>
+                                <span class="text-lg font-bold text-blue-600" id="products-count">0</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">Confianza Promedio</span>
+                                <span class="text-lg font-bold text-green-600" id="avg-confidence">0%</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">Tiempo Activo</span>
+                                <span class="text-lg font-bold text-purple-600" id="active-time">0s</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sales Inventory -->
+                    <div class="bg-white rounded-lg border border-gray-300 p-6">
+                        <h2 class="text-lg font-semibold text-gray-900 mb-4">💰 Inventario de Ventas</h2>
+                        <div class="space-y-3">
+                            <div class="bg-blue-50 rounded p-3">
+                                <div class="flex justify-between">
+                                    <span class="text-sm text-blue-700">Cargados</span>
+                                    <span class="font-bold text-blue-800" id="loaded-count">0</span>
+                                </div>
+                            </div>
+                            <div class="bg-green-50 rounded p-3">
+                                <div class="flex justify-between">
+                                    <span class="text-sm text-green-700">Vendidos</span>
+                                    <span class="font-bold text-green-800" id="sold-count">0</span>
+                                </div>
+                            </div>
+                            <div class="bg-orange-50 rounded p-3">
+                                <div class="flex justify-between">
+                                    <span class="text-sm text-orange-700">Retornados</span>
+                                    <span class="font-bold text-orange-800" id="returned-count">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product Checklist -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-lg border border-gray-300 h-full">
+                        <div class="px-6 py-4 border-b border-gray-300">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h2 class="text-lg font-semibold text-gray-900">✅ Checklist de Productos</h2>
+                                    <p class="text-sm text-gray-500">Detección en tiempo real</p>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <select id="checklist-selector" class="bg-white text-gray-900 text-sm px-3 py-1.5 rounded border border-gray-300 focus:outline-none focus:ring-1 focus:ring-gray-400">
+                                        <option value="">Seleccionar Checklist</option>
+                                        <option value="bebidas">🥤 Checklist Bebidas (Sin Takis Fuego)</option>
+                                        <option value="snacks">🍿 Checklist Snacks (Sin Santa Clara)</option>
+                                        <option value="refrescos">🥤 Checklist Refrescos (Sin Doritos)</option>
+                                        <option value="papas">🥔 Checklist Papas (Sin Coca-Cola Light)</option>
+                                        <option value="mixto">🛒 Checklist Mixto (Sin Lays)</option>
+                                    </select>
+                                    <button id="test-detection-btn" onclick="simulateProductDetection()" class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1.5 rounded text-sm font-medium transition-colors">
+                                        🧪 Test 1 Producto
+                                    </button>
+                                    <button id="test-all-btn" onclick="simulateAllProductsDetection()" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded text-sm font-medium transition-colors">
+                                        🚀 Test Todos
+                                    </button>
+                                    <div class="flex items-center gap-2">
+                                        <div id="connection-status" class="w-3 h-3 rounded-full bg-red-500"></div>
+                                        <span class="text-xs text-gray-500">Cámara</span>
+                                    </div>
+                                    <div class="text-sm text-gray-600">
+                                        <span id="checklist-progress">0/0</span> completados
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <div id="checklist-progress-bar" class="mb-4 hidden">
+                                <div class="flex justify-between text-sm text-gray-600 mb-1">
+                                    <span>Progreso</span>
+                                    <span id="progress-percentage">0%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div id="progress-bar" class="bg-green-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            <div id="checklist-list" class="space-y-2">
+                                <div class="text-center py-8 text-gray-400">
+                                    <p class="text-sm">Selecciona una checklist para comenzar</p>
+                                    <p class="text-xs mt-1">Los productos se marcarán automáticamente conforme se detecten</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // WebSocket Connection
+        let socket = null;
+        let isConnected = false;
+        let productsDetected = new Map();
+        let startTime = Date.now();
+        
+        // Checklist System - 5 CHECKLISTS DE 5 PRODUCTOS CADA UNA
+        const CHECKLIST_TEMPLATES = {
+            bebidas: {
+                id: 'bebidas',
+                name: '🥤 Checklist Bebidas',
+                description: 'Sin Takis Fuego',
+                products: [
+                    { id: 1, name: 'Santa Clara', category: 'Bebidas' },
+                    { id: 2, name: 'Coca-Cola', category: 'Bebidas' },
+                    { id: 3, name: 'Coca-Cola Light', category: 'Bebidas' },
+                    { id: 5, name: 'Doritos', category: 'Snacks' },
+                    { id: 6, name: 'Lays (Sabritas)', category: 'Snacks' }
+                ]
+            },
+            snacks: {
+                id: 'snacks',
+                name: '🍿 Checklist Snacks',
+                description: 'Sin Santa Clara',
+                products: [
+                    { id: 2, name: 'Coca-Cola', category: 'Bebidas' },
+                    { id: 3, name: 'Coca-Cola Light', category: 'Bebidas' },
+                    { id: 4, name: 'Takis Fuego', category: 'Snacks' },
+                    { id: 5, name: 'Doritos', category: 'Snacks' },
+                    { id: 6, name: 'Lays (Sabritas)', category: 'Snacks' }
+                ]
+            },
+            refrescos: {
+                id: 'refrescos',
+                name: '🥤 Checklist Refrescos',
+                description: 'Sin Doritos',
+                products: [
+                    { id: 1, name: 'Santa Clara', category: 'Bebidas' },
+                    { id: 2, name: 'Coca-Cola', category: 'Bebidas' },
+                    { id: 3, name: 'Coca-Cola Light', category: 'Bebidas' },
+                    { id: 4, name: 'Takis Fuego', category: 'Snacks' },
+                    { id: 6, name: 'Lays (Sabritas)', category: 'Snacks' }
+                ]
+            },
+            papas: {
+                id: 'papas',
+                name: '🥔 Checklist Papas',
+                description: 'Sin Coca-Cola Light',
+                products: [
+                    { id: 1, name: 'Santa Clara', category: 'Bebidas' },
+                    { id: 2, name: 'Coca-Cola', category: 'Bebidas' },
+                    { id: 4, name: 'Takis Fuego', category: 'Snacks' },
+                    { id: 5, name: 'Doritos', category: 'Snacks' },
+                    { id: 6, name: 'Lays (Sabritas)', category: 'Snacks' }
+                ]
+            },
+            mixto: {
+                id: 'mixto',
+                name: '🛒 Checklist Mixto',
+                description: 'Sin Lays (Sabritas)',
+                products: [
+                    { id: 1, name: 'Santa Clara', category: 'Bebidas' },
+                    { id: 2, name: 'Coca-Cola', category: 'Bebidas' },
+                    { id: 3, name: 'Coca-Cola Light', category: 'Bebidas' },
+                    { id: 4, name: 'Takis Fuego', category: 'Snacks' },
+                    { id: 5, name: 'Doritos', category: 'Snacks' }
+                ]
+            }
+        };
+        
+        let activeChecklist = null;
+        let checklistItems = new Map(); // productId -> { status, detectedAt, confidence, count }
+
+        // Checklist Functions
+        function loadChecklist(templateId) {
+            const template = CHECKLIST_TEMPLATES[templateId];
+            if (!template) return;
+            
+            activeChecklist = template;
+            checklistItems.clear();
+            
+            // Initialize all items as pending
+            template.products.forEach(product => {
+                checklistItems.set(product.id, {
+                    status: 'pending',
+                    detectedAt: null,
+                    confidence: 0
+                });
+            });
+            
+            renderChecklist();
+            updateChecklistProgress();
+        }
+        
+        function renderChecklist() {
+            const checklistList = document.getElementById('checklist-list');
+            if (!activeChecklist) {
+                checklistList.innerHTML = `
+                    <div class="text-center py-8 text-gray-400">
+                        <p class="text-sm">Selecciona una checklist para comenzar</p>
+                        <p class="text-xs mt-1">Los productos se marcarán automáticamente conforme se detecten</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const items = activeChecklist.products.map(product => {
+                const item = checklistItems.get(product.id);
+                const status = item ? item.status : 'pending';
+                const detectedAt = item ? item.detectedAt : null;
+                const confidence = item ? item.confidence : 0;
+                
+                let statusIcon = '⏳';
+                let statusClass = 'text-gray-500';
+                let bgClass = 'bg-gray-50';
+                
+                if (status === 'detected') {
+                    statusIcon = '✅';
+                    statusClass = 'text-green-600';
+                    bgClass = 'bg-green-50';
+                } else if (status === 'completed') {
+                    statusIcon = '🎯';
+                    statusClass = 'text-blue-600';
+                    bgClass = 'bg-blue-50';
+                }
+                
+                return `
+                    <div class="product-item ${bgClass} rounded-lg p-3 transition-all duration-300">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <span class="text-lg">${statusIcon}</span>
+                                <div>
+                                    <div class="product-name ${statusClass}">${product.name}</div>
+                                    <div class="text-xs text-gray-500">${product.category}</div>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                ${confidence > 0 ? `<div class="text-xs text-gray-500">${Math.round(confidence * 100)}%</div>` : ''}
+                                ${detectedAt ? `<div class="text-xs text-gray-400">${new Date(detectedAt).toLocaleTimeString()}</div>` : ''}
+                            </div>
+                        </div>
+                        ${confidence > 0 ? `
+                            <div class="mt-2">
+                                <div class="w-full bg-gray-200 rounded-full h-1">
+                                    <div class="bg-green-500 h-1 rounded-full transition-all duration-500" style="width: ${confidence * 100}%"></div>
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+            
+            checklistList.innerHTML = items;
+        }
+        
+        function updateChecklistProgress() {
+            if (!activeChecklist) return;
+            
+            const totalItems = activeChecklist.products.length;
+            const completedItems = Array.from(checklistItems.values()).filter(item => item.status === 'detected' || item.status === 'completed').length;
+            const percentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
+            
+            document.getElementById('checklist-progress').textContent = `${completedItems}/${totalItems}`;
+            document.getElementById('progress-percentage').textContent = `${percentage}%`;
+            document.getElementById('progress-bar').style.width = `${percentage}%`;
+            
+            const progressBar = document.getElementById('checklist-progress-bar');
+            if (totalItems > 0) {
+                progressBar.classList.remove('hidden');
+            } else {
+                progressBar.classList.add('hidden');
+            }
+        }
+        
+        function handleChecklistProductDetected(event) {
+            if (!activeChecklist) {
+                console.log('⚠️ No active checklist selected');
+                return;
+            }
+            
+            console.log('🎯 Checklist: Processing detection for:', event.product_name);
+            
+            // Buscar producto por nombre (más flexible)
+            const productName = event.product_name;
+            let product = activeChecklist.products.find(p => p.name === productName);
+            
+            // Casos especiales para productos similares
+            if (!product) {
+                // Caso especial: Coca-Cola Light Lata -> Coca-Cola Light
+                if (productName.toLowerCase().includes('coca-cola light')) {
+                    product = activeChecklist.products.find(p => p.name.toLowerCase().includes('coca-cola light'));
+                    if (product) {
+                        console.log('✅ Special case match: Coca-Cola Light');
+                    }
+                }
+                // Caso especial: Coca-Cola Regular Lata -> Coca-Cola
+                else if (productName.toLowerCase().includes('coca-cola regular') || 
+                        (productName.toLowerCase().includes('coca-cola') && !productName.toLowerCase().includes('light'))) {
+                    product = activeChecklist.products.find(p => p.name.toLowerCase() === 'coca-cola');
+                    if (product) {
+                        console.log('✅ Special case match: Coca-Cola Regular');
+                    }
+                }
+            }
+            
+            // Si no encuentra exacto, buscar por similitud mejorada
+            if (!product) {
+                console.log('🔍 Trying fuzzy search for:', productName);
+                product = activeChecklist.products.find(p => {
+                    const name1 = p.name.toLowerCase().replace(/[^a-z0-9]/g, '');
+                    const name2 = productName.toLowerCase().replace(/[^a-z0-9]/g, '');
+                    
+                    // Mejorar la lógica de matching para evitar falsos positivos
+                    // Priorizar matches más específicos y completos
+                    const isExactMatch = name1 === name2;
+                    const isContainedMatch = name1.includes(name2) || name2.includes(name1);
+                    const isPartialMatch = name1.split(' ').some(word => name2.includes(word)) || 
+                                         name2.split(' ').some(word => name1.includes(word));
+                    
+                    // Solo considerar match si es significativo (más de 3 caracteres)
+                    const isSignificantMatch = name2.length > 3 && (isExactMatch || isContainedMatch || isPartialMatch);
+                    
+                    if (isSignificantMatch) {
+                        console.log('✅ Found match:', p.name, 'for', productName, '(type:', 
+                                  isExactMatch ? 'exact' : isContainedMatch ? 'contained' : 'partial', ')');
+                    }
+                    return isSignificantMatch;
+                });
+            }
+            
+            if (!product) {
+                console.log('❌ Product not found in current checklist:', productName);
+                console.log('📋 Available products:', activeChecklist.products.map(p => p.name));
+                return;
+            }
+            
+            const currentItem = checklistItems.get(product.id);
+            if (!currentItem) return;
+            
+            // Update item status
+            currentItem.status = 'detected';
+            currentItem.detectedAt = event.detected_at;
+            currentItem.confidence = event.confidence;
+            
+            checklistItems.set(product.id, currentItem);
+            
+            console.log('✅ Checklist: Updated product:', product.name, 'Status:', currentItem.status);
+            
+            // Re-render checklist
+            renderChecklist();
+            updateChecklistProgress();
+            
+            // Add animation effect
+            setTimeout(() => {
+                const itemElements = document.querySelectorAll('.product-item');
+                itemElements.forEach(element => {
+                    if (element.textContent.includes(product.name)) {
+                        element.classList.add('animate-pulse');
+                        setTimeout(() => {
+                            element.classList.remove('animate-pulse');
+                        }, 1000);
+                    }
+                });
+            }, 100);
+        }
+        
+        // Test function to simulate product detections
+        function simulateProductDetection() {
+            if (!activeChecklist) {
+                console.log('⚠️ No active checklist selected');
+                alert('⚠️ Primero selecciona una checklist');
+                return;
+            }
+            
+            const products = activeChecklist.products;
+            const randomProduct = products[Math.floor(Math.random() * products.length)];
+            
+            const mockEvent = {
+                product_id: randomProduct.id,
+                product_name: randomProduct.name,
+                category: randomProduct.category,
+                confidence: 0.85 + Math.random() * 0.14,
+                detected_at: new Date().toISOString()
+            };
+            
+            console.log('🧪 Simulating detection:', mockEvent);
+            console.log('📋 Current checklist:', activeChecklist.name);
+            console.log('📦 Available products:', activeChecklist.products.map(p => p.name));
+            
+            handleChecklistProductDetected(mockEvent);
+        }
+        
+        // Test function to simulate ALL products detection
+        function simulateAllProductsDetection() {
+            if (!activeChecklist) {
+                console.log('⚠️ No active checklist selected');
+                alert('⚠️ Primero selecciona una checklist');
+                return;
+            }
+            
+            console.log('🧪 Simulating ALL products detection for:', activeChecklist.name);
+            
+            activeChecklist.products.forEach((product, index) => {
+                setTimeout(() => {
+                    const mockEvent = {
+                        product_id: product.id,
+                        product_name: product.name,
+                        category: product.category,
+                        confidence: 0.85 + Math.random() * 0.14,
+                        detected_at: new Date().toISOString()
+                    };
+                    
+                    console.log(`🧪 Simulating detection ${index + 1}/${activeChecklist.products.length}:`, mockEvent);
+                    handleChecklistProductDetected(mockEvent);
+                }, index * 1000); // 1 segundo entre cada detección
+            });
+        }
+        
+        // Initialize checklist selector
+        function initChecklistSelector() {
+            const selector = document.getElementById('checklist-selector');
+            if (!selector) {
+                console.error('❌ Checklist selector not found');
+                return;
+            }
+            
+            selector.addEventListener('change', (e) => {
+                const templateId = e.target.value;
+                console.log('📋 Checklist selected:', templateId);
+                
+                if (templateId) {
+                    loadChecklist(templateId);
+                } else {
+                    activeChecklist = null;
+                    checklistItems.clear();
+                    renderChecklist();
+                    updateChecklistProgress();
+                }
+            });
+            
+            console.log('✅ Checklist selector initialized');
+        }
+
+        // Initialize WebSocket
+        function initWebSocket() {
+            try {
+                console.log('🔌 Dashboard connecting to WebSocket...');
+                socket = io('ws://localhost:3001/ws', {
+                    transports: ['websocket', 'polling'],
+                    reconnection: true,
+                    reconnectionDelay: 1000,
+                    reconnectionAttempts: 5,
+                });
+                
+                console.log('🔌 Socket created, waiting for connection...');
+
+                socket.on('connect', () => {
+                    console.log('✅ Dashboard WebSocket connected');
+                    console.log('🆔 Socket ID:', socket.id);
+                    
+                    // Unirse al room del trolley por defecto para recibir eventos
+                    socket.emit('join_trolley_room', { trolleyId: 1 });
+                    console.log('🏠 Joined trolley room 1');
+                    
+                    updateConnectionStatus(true);
+                });
+
+                socket.on('disconnect', () => {
+                    console.log('❌ Dashboard WebSocket disconnected');
+                    updateConnectionStatus(false);
+                });
+
+                socket.on('product_detected', (event) => {
+                    console.log('🎯 REAL Product detected from camera:', event);
+                    console.log('📝 Event details:', {
+                        product_name: event.product_name,
+                        product_id: event.product_id,
+                        category: event.category,
+                        confidence: event.confidence
+                    });
+                    console.log('🔍 Processing event for checklist system...');
+                    handleProductDetected(event);
+                    handleChecklistProductDetected(event);
+                });
+
+                // Debug: Escuchar TODOS los eventos para ver qué está llegando
+                socket.onAny((eventName, ...args) => {
+                    console.log('📡 Dashboard received event:', eventName, args);
+                });
+
+                socket.on('connect_error', (error) => {
+                    console.warn('⚠️ WebSocket connection error:', error.message);
+                    updateConnectionStatus(false);
+                });
+
+            } catch (error) {
+                console.error('❌ Error initializing WebSocket:', error);
+                updateConnectionStatus(false);
+            }
+        }
+
+        // Update connection status
+        function updateConnectionStatus(connected) {
+            isConnected = connected;
+            const statusDot = document.getElementById('status-dot');
+            const statusText = document.getElementById('status-text');
+            
+            if (connected) {
+                statusDot.className = 'w-3 h-3 bg-green-500 rounded-full';
+                statusText.textContent = 'Conectado';
+            } else {
+                statusDot.className = 'w-3 h-3 bg-red-500 rounded-full';
+                statusText.textContent = 'Desconectado';
+            }
+        }
+
+        // Handle product detection
+        function handleProductDetected(event) {
+            const productId = event.product_id;
+            const productName = event.product_name;
+            const confidence = event.confidence;
+            const detectedAt = new Date(event.detected_at).toLocaleTimeString();
+
+            // Store product detection
+            productsDetected.set(productId, {
+                name: productName,
+                confidence: confidence,
+                detectedAt: detectedAt,
+                count: (productsDetected.get(productId)?.count || 0) + 1
+            });
+
+            // Update UI
+            updateMetrics();
+        }
+
+        // Update product list - REMOVED: This function was causing errors because product-list element doesn't exist
+        // The checklist system now handles product display
+
+        // Update metrics
+        function updateMetrics() {
+            const productsCount = productsDetected.size;
+            const avgConfidence = productsDetected.size > 0 
+                ? Array.from(productsDetected.values()).reduce((sum, p) => sum + p.confidence, 0) / productsDetected.size
+                : 0;
+            const activeTime = Math.floor((Date.now() - startTime) / 1000);
+
+            document.getElementById('products-count').textContent = productsCount;
+            document.getElementById('avg-confidence').textContent = Math.round(avgConfidence * 100) + '%';
+            document.getElementById('active-time').textContent = activeTime + 's';
+        }
+
+        // Initialize dashboard
+        function initDashboard() {
+            console.log('🚀 Initializing Smart Trolley Dashboard');
+            initWebSocket();
+            initChecklistSelector();
+            updateMetrics();
+            
+            // Update metrics every second
+            setInterval(updateMetrics, 1000);
+        }
+
+        // Start dashboard when page loads
+        document.addEventListener('DOMContentLoaded', initDashboard);
+    </script>
+  </body>
+</html>
