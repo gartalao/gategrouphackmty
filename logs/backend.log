@@ -8457,3 +8457,34 @@ Coca-Co...
 [Gemini] ✅ Detección válida: { detected: false }
 [WS] 🔍 Resultado de Gemini: { detected: false }
 [WS] ⚪ No se detectó producto o confianza baja
+[32m[nodemon] restarting due to changes...[39m
+[32m[nodemon] starting `node src/index.js`[39m
+[Gemini] Configurado con modelo: gemini-robotics-er-1.5-preview
+[Gemini] URL: https://generativelanguage.googleapis.com/v1beta/models/gemini-robotics-er-1.5-preview:generateContent
+[WS] Video stream namespace initialized at /ws
+
+═══════════════════════════════════════════════════════
+🚀 Smart Trolley API Server
+═══════════════════════════════════════════════════════
+✅ Server running on http://localhost:3001
+✅ WebSocket available at ws://localhost:3001/ws
+✅ Gemini Mode: 🤖 REAL (Production)
+✅ Database: 🟢 Connected
+═══════════════════════════════════════════════════════
+
+📡 Endpoints:
+   GET  /                          - API info
+   GET  /health                    - Health check
+   GET  /api/trolleys/:id/realtime-status
+   GET  /api/trolleys/:id/detections
+   GET  /api/scans/:id/summary
+
+🎥 WebSocket Events:
+   start_scan  - Iniciar grabación
+   frame       - Enviar frame de video
+   end_scan    - Finalizar grabación
+
+👀 Listening for connections...
+
+[WS] No token provided, using guest user (dev mode)
+[WS] User guest connected (gPFCCVeh5QRhCnV2AAAB)
