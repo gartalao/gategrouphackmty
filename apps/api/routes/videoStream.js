@@ -233,27 +233,42 @@ function initializeVideoStream(io) {
     socket.on('frame', async (payload) => {
       try {
         console.log('[WS] 📥 Frame recibido del cliente');
-        const { scanId, frameId, jpegBase64 } = payload;
+        const { scanId, frameId, jpegBase64, scanType } = payload;
         
         console.log('[WS] 📊 Datos del frame:', {
           scanId,
           frameId,
+          scanType: scanType || 'load',
           base64Length: jpegBase64?.length || 0,
           timestamp: Date.now()
         });
 
-        // Get scan to verify it exists
-        const scan = await prisma.scan.findUnique({
-          where: { scanId },
-          include: { trolley: true },
-        });
+        const isReturnScan = scanType === 'return';
+        let scan;
+        let trolleyId;
+
+        if (isReturnScan) {
+          // Es un return scan
+          scan = await prisma.returnScan.findUnique({
+            where: { returnScanId: scanId },
+            include: { trolley: true },
+          });
+          trolleyId = scan?.trolleyId;
+        } else {
+          // Es un scan normal
+          scan = await prisma.scan.findUnique({
+            where: { scanId },
+            include: { trolley: true },
+          });
+          trolleyId = scan?.trolleyId;
+        }
 
         if (!scan || scan.status !== 'recording') {
-          console.warn(`[WS] ❌ Invalid or ended scan: ${scanId}`);
+          console.warn(`[WS] ❌ Invalid or ended ${scanType || 'load'} scan: ${scanId}`);
           return;
         }
         
-        console.log('[WS] ✅ Scan válido, obteniendo catálogo...');
+        console.log(`[WS] ✅ ${isReturnScan ? 'Return' : 'Load'} scan válido, obteniendo catálogo...`);
 
         // Get product catalog
         const products = await prisma.product.findMany({
@@ -329,39 +344,76 @@ function initializeVideoStream(io) {
         // Insertar SOLO productos que NO han sido registrados antes en esta sesión
         for (const {product, confidence, box} of newProductsToInsert) {
           try {
-            // Insert detection en DB
-            const detection = await prisma.productDetection.create({
-              data: {
-                scanId,
-                productId: product.productId,
-                operatorId: scan.operatorId || undefined,
+            let detection;
+
+            if (isReturnScan) {
+              // Guardar en return_detections
+              detection = await prisma.returnDetection.create({
+                data: {
+                  returnScanId: scanId,
+                  productId: product.productId,
+                  operatorId: scan.operatorId || undefined,
+                  confidence: confidence,
+                  videoFrameId: frameId,
+                  detectedAt: new Date(),
+                },
+                include: {
+                  product: true,
+                },
+              });
+
+              // Emit con indicador de return scan
+              wsNamespace.to(`trolley_${trolleyId}`).emit('product_detected', {
+                event: 'product_detected',
+                scan_type: 'return',
+                trolley_id: trolleyId,
+                product_id: product.productId,
+                product_name: product.name,
+                detected_at: detection.detectedAt,
+                operator_id: scan.operatorId,
                 confidence: confidence,
-                videoFrameId: frameId,
-                detectedAt: new Date(),
-              },
-              include: {
-                product: true,
-              },
-            });
+                box_2d: box,
+              });
+
+              console.log(
+                `[WS] ✅ [RETURN] Producto registrado: ${product.name} (confidence: ${confidence.toFixed(2)})`
+              );
+            } else {
+              // Guardar en product_detections (scan normal)
+              detection = await prisma.productDetection.create({
+                data: {
+                  scanId,
+                  productId: product.productId,
+                  operatorId: scan.operatorId || undefined,
+                  confidence: confidence,
+                  videoFrameId: frameId,
+                  detectedAt: new Date(),
+                },
+                include: {
+                  product: true,
+                },
+              });
+
+              // Emit to trolley room
+              wsNamespace.to(`trolley_${trolleyId}`).emit('product_detected', {
+                event: 'product_detected',
+                scan_type: 'load',
+                trolley_id: trolleyId,
+                product_id: product.productId,
+                product_name: product.name,
+                detected_at: detection.detectedAt,
+                operator_id: scan.operatorId,
+                confidence: confidence,
+                box_2d: box,
+              });
+
+              console.log(
+                `[WS] ✅ [LOAD] Producto registrado por PRIMERA VEZ en sesión: ${product.name} (confidence: ${confidence.toFixed(2)})`
+              );
+            }
 
             // Marcar como registrado PERMANENTEMENTE en esta sesión
             markAsRegistered(scanId, product.productId);
-
-            // Emit to trolley room
-            wsNamespace.to(`trolley_${scan.trolleyId}`).emit('product_detected', {
-              event: 'product_detected',
-              trolley_id: scan.trolleyId,
-              product_id: product.productId,
-              product_name: product.name,
-              detected_at: detection.detectedAt,
-              operator_id: scan.operatorId,
-              confidence: confidence,
-              box_2d: box,
-            });
-
-            console.log(
-              `[WS] ✅ Producto registrado por PRIMERA VEZ en sesión: ${product.name} (confidence: ${confidence.toFixed(2)})`
-            );
           } catch (itemError) {
             console.error('[WS] ❌ Error registrando producto:', itemError.message);
           }
@@ -393,6 +445,86 @@ function initializeVideoStream(io) {
       } catch (error) {
         console.error('[WS] Error ending scan:', error);
         ack?.({ error: 'Failed to end scan' });
+      }
+    });
+
+    // EVENT: start_return_scan (NUEVO)
+    socket.on('start_return_scan', async (payload, ack) => {
+      try {
+        let { scanId, trolleyId, operatorId } = payload;
+
+        // Verificar que el scan original existe
+        const originalScan = await prisma.scan.findUnique({
+          where: { scanId },
+        });
+
+        if (!originalScan) {
+          console.error('[WS] Original scan not found:', scanId);
+          return ack?.({ error: 'Original scan not found' });
+        }
+
+        // Verificar si ya existe un return scan para este scan
+        const existingReturnScan = await prisma.returnScan.findUnique({
+          where: { scanId },
+        });
+
+        if (existingReturnScan) {
+          console.log('[WS] Return scan already exists, usando existente:', existingReturnScan.returnScanId);
+          return ack?.({
+            returnScanId: existingReturnScan.returnScanId,
+            scanId,
+            status: existingReturnScan.status
+          });
+        }
+
+        // Crear return scan
+        const returnScan = await prisma.returnScan.create({
+          data: {
+            scanId,
+            trolleyId: trolleyId || originalScan.trolleyId,
+            operatorId: operatorId || originalScan.operatorId,
+            status: 'recording',
+            startedAt: new Date(),
+          },
+        });
+
+        socket.join(`trolley_${trolleyId || originalScan.trolleyId}`);
+
+        console.log(`[WS] ✅ Return Scan ${returnScan.returnScanId} started for original scan ${scanId}`);
+
+        ack?.({ 
+          returnScanId: returnScan.returnScanId, 
+          scanId,
+          status: 'recording' 
+        });
+      } catch (error) {
+        console.error('[WS] Error starting return scan:', error);
+        ack?.({ error: 'Failed to start return scan' });
+      }
+    });
+
+    // EVENT: end_return_scan (NUEVO)
+    socket.on('end_return_scan', async (payload, ack) => {
+      try {
+        const { returnScanId } = payload;
+
+        const updated = await prisma.returnScan.update({
+          where: { returnScanId },
+          data: {
+            endedAt: new Date(),
+            status: 'completed',
+          },
+        });
+
+        // Limpiar tracking de productos registrados
+        cleanupRegisteredProducts(returnScanId);
+
+        console.log(`[WS] ✅ Return Scan ${returnScanId} ended`);
+
+        ack?.({ status: 'completed', endedAt: updated.endedAt });
+      } catch (error) {
+        console.error('[WS] Error ending return scan:', error);
+        ack?.({ error: 'Failed to end return scan' });
       }
     });
 

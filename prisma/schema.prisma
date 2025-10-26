@@ -24,8 +24,10 @@ model User {
   createdAt    DateTime  @default(now()) @map("created_at")
 
   // Relations
-  scans        Scan[]
-  detections   ProductDetection[]
+  scans            Scan[]
+  detections       ProductDetection[]
+  returnScans      ReturnScan[]
+  returnDetections ReturnDetection[]
 
   @@map("users")
 }
@@ -45,6 +47,7 @@ model Product {
   // Relations
   flightRequirements FlightRequirement[]
   detections         ProductDetection[]
+  returnDetections   ReturnDetection[]
 
   @@map("products")
 }
@@ -77,6 +80,7 @@ model Trolley {
   flightId           Int?
   flight             Flight?   @relation(fields: [flightId], references: [flightId])
   scans              Scan[]
+  returnScans        ReturnScan[]
   flightRequirements FlightRequirement[]
 
   @@map("trolleys")
@@ -117,6 +121,7 @@ model Scan {
   trolley      Trolley?           @relation(fields: [trolleyId], references: [trolleyId])
   operator     User?              @relation(fields: [operatorId], references: [userId])
   detections   ProductDetection[]
+  returnScan   ReturnScan?        // Un scan de carga puede tener un scan de retorno
 
   @@map("scans")
 }
@@ -142,4 +147,48 @@ model ProductDetection {
   @@index([productId])
   @@index([detectedAt(sort: Desc)])
   @@map("product_detections")
+}
+
+// ---------- RETURN SCANS ----------
+// Escaneo de productos que QUEDAN después del vuelo
+model ReturnScan {
+  returnScanId  Int       @id @default(autoincrement())
+  scanId        Int       @unique // Referencia al scan de carga original
+  startedAt     DateTime  @default(now()) @map("started_at")
+  endedAt       DateTime? @map("ended_at")
+  status        String    @default("recording") // "recording" | "completed"
+  
+  // Relations
+  trolleyId     Int?
+  operatorId    Int?
+  
+  scan          Scan              @relation(fields: [scanId], references: [scanId])
+  trolley       Trolley?          @relation(fields: [trolleyId], references: [trolleyId])
+  operator      User?             @relation(fields: [operatorId], references: [userId])
+  detections    ReturnDetection[]
+  
+  @@map("return_scans")
+}
+
+// ---------- RETURN DETECTIONS ----------
+// Productos detectados que QUEDARON en el trolley
+model ReturnDetection {
+  returnDetectionId Int      @id @default(autoincrement())
+  detectedAt        DateTime @default(now()) @map("detected_at")
+  confidence        Decimal? @db.Decimal(5, 4)
+  videoFrameId      String?  @map("video_frame_id")
+  
+  // Relations
+  returnScanId  Int
+  productId     Int
+  operatorId    Int?
+  
+  returnScan    ReturnScan @relation(fields: [returnScanId], references: [returnScanId], onDelete: Cascade)
+  product       Product    @relation(fields: [productId], references: [productId])
+  operator      User?      @relation(fields: [operatorId], references: [userId])
+  
+  @@unique([returnScanId, productId, detectedAt])
+  @@index([returnScanId])
+  @@index([productId])
+  @@map("return_detections")
 }

@@ -5,6 +5,7 @@ const { createServer } = require('http');
 const { Server } = require('socket.io');
 const { initializeVideoStream } = require('../routes/videoStream');
 const detectionsRouter = require('../routes/detections');
+const salesTrackingRouter = require('../routes/salesTracking');
 
 const app = express();
 const httpServer = createServer(app);
@@ -39,6 +40,7 @@ app.get('/health', (req, res) => {
 
 // Routes
 app.use('/api', detectionsRouter);
+app.use('/api', salesTrackingRouter);
 
 // Initialize WebSocket for video streaming
 initializeVideoStream(io);

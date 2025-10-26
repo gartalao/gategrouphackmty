@@ -30,6 +30,13 @@ export interface FrameParams {
   frameId: string;
   jpegBase64: string;
   ts: number;
+  scanType?: 'load' | 'return';
+}
+
+export interface StartReturnScanParams {
+  scanId: number; // ID del scan de carga original
+  trolleyId: number;
+  operatorId: number;
 }
 
 export class WebSocketService {
@@ -179,6 +186,49 @@ export class WebSocketService {
       }
 
       this.socket.emit('end_scan', params, (response: any) => {
+        if (response.error) {
+          reject(new Error(response.error));
+        } else {
+          resolve(response);
+        }
+      });
+    });
+  }
+
+  /**
+   * Inicia un return scan (escaneo de productos restantes)
+   */
+  async startReturnScan(params: StartReturnScanParams): Promise<{ returnScanId: number; scanId: number; status: string }> {
+    return new Promise((resolve, reject) => {
+      if (!this.socket) {
+        reject(new Error('Socket not connected'));
+        return;
+      }
+
+      console.log('[WebSocket] 📡 Enviando start_return_scan:', params);
+
+      this.socket.emit('start_return_scan', params, (response: any) => {
+        if (response.error) {
+          reject(new Error(response.error));
+        } else {
+          console.log('[WebSocket] ✅ Return scan iniciado:', response);
+          resolve(response);
+        }
+      });
+    });
+  }
+
+  /**
+   * Finaliza un return scan
+   */
+  async endReturnScan(params: { returnScanId: number }): Promise<{ status: string; endedAt: string }> {
+    return new Promise((resolve, reject) => {
+      if (!this.socket) {
+        reject(new Error('Socket not connected'));
+        return;
+      }
+
+      this.socket.emit('end_return_scan', params, (response: any) => {
         if (response.error) {
           reject(new Error(response.error));
         } else {

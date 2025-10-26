@@ -33,6 +33,10 @@ export const LiveRecording: React.FC<LiveRecordingProps> = ({
   const [lastFrameTime, setLastFrameTime] = useState<string | null>(null);
   const [geminiStatus, setGeminiStatus] = useState<'idle' | 'analyzing' | 'success' | 'error'>('idle');
   const [backendStatus, setBackendStatus] = useState<'disconnected' | 'connected' | 'sending'>('disconnected');
+  
+  // Estados para sistema de ventas
+  const [scanType, setScanType] = useState<'load' | 'return'>('load');
+  const [originalScanId, setOriginalScanId] = useState<number | null>(null);
 
   // Referencias a servicios
   const geminiServiceRef = useRef<GeminiLiveService | null>(null);
@@ -59,9 +63,9 @@ export const LiveRecording: React.FC<LiveRecordingProps> = ({
     };
   }, []);
 
-  const initializeSession = async () => {
+  const initializeSession = async (type: 'load' | 'return') => {
     try {
-      console.log('[LiveRecording] 🚀 Iniciando sesión...');
+      console.log(`[LiveRecording] 🚀 Iniciando sesión (${type})...`);
       console.log('[LiveRecording] 📡 URL WebSocket:', WS_URL);
       
       // Limpiar sesión anterior si existe
@@ -100,19 +104,42 @@ export const LiveRecording: React.FC<LiveRecordingProps> = ({
       wsServiceRef.current = wsService;
       console.log('[LiveRecording] ✅ Servicio WebSocket guardado en ref');
 
-      // Iniciar sesión de scan en el backend
-      console.log('[LiveRecording] 🎬 Iniciando sesión de scan...');
-      const response = await wsService.startScan({
-        trolleyId: trolleyId || 1,
-        operatorId: operatorId || 1,
-      });
+      // Iniciar sesión de scan en el backend según tipo
+      console.log(`[LiveRecording] 🎬 Iniciando sesión de ${type} scan...`);
+      
+      if (type === 'load') {
+        // Scan normal de carga
+        const response = await wsService.startScan({
+          trolleyId: trolleyId || 1,
+          operatorId: operatorId || 1,
+        });
 
-      scanIdRef.current = response.scanId;
-      setScanId(response.scanId);
+        scanIdRef.current = response.scanId;
+        setScanId(response.scanId);
+        setOriginalScanId(response.scanId); // Guardar para usar en return scan
+        
+        console.log(`[LiveRecording] ✅ LOAD Scan iniciado. Scan ID: ${response.scanId}`);
+      } else {
+        // Return scan (productos restantes)
+        if (!originalScanId) {
+          throw new Error('No hay scan de carga original');
+        }
+
+        const response = await wsService.startReturnScan({
+          scanId: originalScanId, // ID del scan de carga original
+          trolleyId: trolleyId || 1,
+          operatorId: operatorId || 1,
+        });
+
+        scanIdRef.current = response.returnScanId;
+        setScanId(response.returnScanId);
+        
+        console.log(`[LiveRecording] ✅ RETURN Scan iniciado. Return Scan ID: ${response.returnScanId}`);
+      }
+
       setIsConnected(true);
       setGeminiStatus('idle');
 
-      console.log(`[LiveRecording] ✅ Sesión iniciada. Scan ID: ${response.scanId}`);
       console.log('[LiveRecording] 📡 Backend procesará frames con Gemini server-side');
       
     } catch (error) {
@@ -190,6 +217,7 @@ export const LiveRecording: React.FC<LiveRecordingProps> = ({
             frameId,
             jpegBase64: base64Data,
             ts: Date.now(),
+            scanType, // Agregar tipo de scan (load o return)
           });
 
           console.log(`[LiveRecording] 📡 Frame ${frameCounterRef.current} ENVIADO al backend vía WebSocket`);
@@ -209,26 +237,35 @@ export const LiveRecording: React.FC<LiveRecordingProps> = ({
     }
   };
 
-  const handleStartRecording = async () => {
+  const handleStartRecording = async (type: 'load' | 'return') => {
     try {
-      console.log('[LiveRecording] 🎬 handleStartRecording - INICIO');
+      console.log(`[LiveRecording] 🎬 handleStartRecording - INICIO (${type})`);
+      
+      // Validar que para return scan tengamos un originalScanId
+      if (type === 'return' && !originalScanId) {
+        setError('Primero debes completar un escaneo de carga del trolley');
+        return;
+      }
       
       // PRIMERO: Limpiar productos detectados de sesión anterior
       detectedProductIdsRef.current.clear();
       setDetections([]); // Limpiar UI
       console.log('[LiveRecording] 🧹 Productos detectados limpiados para nueva sesión');
       
-      // SEGUNDO: Establecer estado de grabación (ref + state)
+      // SEGUNDO: Establecer tipo de scan
+      setScanType(type);
+      
+      // TERCERO: Establecer estado de grabación (ref + state)
       isRecordingRef.current = true; // Actualización INMEDIATA con ref
       setIsRecording(true);
       setIsPaused(false);
       console.log('[LiveRecording] ✅ Estado actualizado: isRecordingRef=true, isRecording=true');
       
-      // TERCERO: SIEMPRE crear nueva sesión para evitar scans ended
+      // CUARTO: Crear nueva sesión según tipo
       console.log('[LiveRecording] 🔌 Creando nueva sesión...');
-      await initializeSession();
+      await initializeSession(type);
       
-      console.log('[LiveRecording] ▶ Streaming AUTOMÁTICO iniciado - Gemini analizará cada frame');
+      console.log(`[LiveRecording] ▶ Streaming AUTOMÁTICO iniciado (${type}) - Gemini analizará cada frame`);
     } catch (error) {
       console.error('[LiveRecording] ❌ Error al iniciar streaming:', error);
       setError(`Error al iniciar: ${error instanceof Error ? error.message : 'Error desconocido'}`);
@@ -250,19 +287,24 @@ export const LiveRecording: React.FC<LiveRecordingProps> = ({
       setIsRecording(false);
       setIsPaused(false);
 
-      // Finalizar scan
-      await wsServiceRef.current.endScan({ scanId });
+      // Finalizar scan según tipo
+      if (scanType === 'return') {
+        await wsServiceRef.current.endReturnScan({ returnScanId: scanId });
+        console.log('[LiveRecording] ✅ Return scan finalizado');
+      } else {
+        await wsServiceRef.current.endScan({ scanId });
+        console.log('[LiveRecording] ✅ Load scan finalizado');
+      }
 
-      // Mostrar confirmación
-      const confirmed = window.confirm(
-        '¿Estás seguro de que quieres finalizar la sesión? Esto detendrá la grabación.'
-      );
+      // Mensaje de confirmación según tipo
+      const message = scanType === 'load'
+        ? '¿Escaneo de carga finalizado! ¿Deseas salir?'
+        : '¿Escaneo de retorno finalizado! ¿Deseas salir?';
+
+      const confirmed = window.confirm(message);
 
       if (confirmed) {
         onEndSession();
-      } else {
-        // Reanudar si canceló
-        setIsRecording(true);
       }
     } catch (error) {
       console.error('[LiveRecording] Error ending session:', error);
@@ -367,7 +409,9 @@ export const LiveRecording: React.FC<LiveRecordingProps> = ({
               isPaused={isPaused}
               framesSent={framesSent}
               queueSize={queueSize}
-              onStartRecording={handleStartRecording}
+              onStartLoadScan={() => handleStartRecording('load')}
+              onStartReturnScan={() => handleStartRecording('return')}
+              hasOriginalScan={!!originalScanId}
               onPauseRecording={handlePauseRecording}
               onStopRecording={handleStopRecording}
               className="mb-6"

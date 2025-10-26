@@ -8,6 +8,9 @@ interface StatusPanelProps {
   framesSent: number;
   queueSize: number;
   onStartRecording?: () => void;
+  onStartLoadScan?: () => void; // NUEVO: Escaneo de carga
+  onStartReturnScan?: () => void; // NUEVO: Escaneo de retorno
+  hasOriginalScan?: boolean; // NUEVO: Si ya hay un scan de carga previo
   onPauseRecording?: () => void;
   onStopRecording?: () => void;
   className?: string;
@@ -20,6 +23,9 @@ export const StatusPanel: React.FC<StatusPanelProps> = ({
   framesSent,
   queueSize,
   onStartRecording,
+  onStartLoadScan,
+  onStartReturnScan,
+  hasOriginalScan = false,
   onPauseRecording,
   onStopRecording,
   className = '',
@@ -133,27 +139,50 @@ export const StatusPanel: React.FC<StatusPanelProps> = ({
         </div>
       </div>
 
-      {/* Controles - SOLO Iniciar/Detener */}
+      {/* Controles - DOS BOTONES o DETENER */}
       <div className="mt-4 pt-3 border-t border-gray-700">
-        <div className="flex space-x-2">
-          {!isRecording ? (
+        {!isRecording ? (
+          <div className="space-y-2">
+            {/* Botón 1: Cargar Trolley */}
             <button
-              onClick={onStartRecording}
-              className="flex-1 flex items-center justify-center space-x-2 bg-green-600 hover:bg-green-700 px-4 py-3 rounded-lg transition-colors font-semibold text-lg"
+              onClick={onStartLoadScan || onStartRecording}
+              className="w-full flex items-center justify-center space-x-2 bg-green-600 hover:bg-green-700 px-4 py-3 rounded-lg transition-colors font-semibold"
             >
               <Play className="w-5 h-5" />
-              <span>▶ Iniciar Streaming</span>
+              <span>📦 Escanear Carga de Trolley</span>
             </button>
-          ) : (
+            
+            {/* Botón 2: Retorno después del vuelo */}
             <button
-              onClick={onStopRecording}
-              className="flex-1 flex items-center justify-center space-x-2 bg-red-600 hover:bg-red-700 px-4 py-3 rounded-lg transition-colors font-semibold text-lg"
+              onClick={onStartReturnScan}
+              disabled={!hasOriginalScan}
+              className={`w-full flex items-center justify-center space-x-2 px-4 py-3 rounded-lg transition-colors font-semibold ${
+                hasOriginalScan
+                  ? 'bg-blue-600 hover:bg-blue-700'
+                  : 'bg-gray-600 cursor-not-allowed opacity-50'
+              }`}
             >
-              <Square className="w-5 h-5" />
-              <span>⏹ Detener Streaming</span>
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+              </svg>
+              <span>🔄 Escanear Retorno (Restantes)</span>
             </button>
-          )}
-        </div>
+            
+            {!hasOriginalScan && (
+              <p className="text-xs text-gray-400 text-center mt-1">
+                ℹ️ Primero escanea la carga del trolley
+              </p>
+            )}
+          </div>
+        ) : (
+          <button
+            onClick={onStopRecording}
+            className="w-full flex items-center justify-center space-x-2 bg-red-600 hover:bg-red-700 px-4 py-3 rounded-lg transition-colors font-semibold text-lg"
+          >
+            <Square className="w-5 h-5" />
+            <span>⏹ Detener Streaming</span>
+          </button>
+        )}
       </div>
 
       {/* Alertas */}
