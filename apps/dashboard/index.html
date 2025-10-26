@@ -142,6 +142,12 @@
         let productsDetected = new Map();
         let startTime = Date.now();
         
+        // Sales tracking state
+        let currentScanId = null;
+        let loadedProducts = new Set(); // IDs de productos cargados
+        let returnedProducts = new Set(); // IDs de productos retornados
+        let lastCompletedScanId = null;
+        
         // Checklist System - 5 CHECKLISTS DE 5 PRODUCTOS CADA UNA
         const CHECKLIST_TEMPLATES = {
             bebidas: {
@@ -514,11 +520,13 @@
                         product_name: event.product_name,
                         product_id: event.product_id,
                         category: event.category,
-                        confidence: event.confidence
+                        confidence: event.confidence,
+                        scan_type: event.scan_type
                     });
                     console.log('🔍 Processing event for checklist system...');
                     handleProductDetected(event);
                     handleChecklistProductDetected(event);
+                    handleSalesTracking(event); // NUEVO: Tracking de ventas
                 });
 
                 // Debug: Escuchar TODOS los eventos para ver qué está llegando
@@ -573,6 +581,68 @@
 
         // Update product list - REMOVED: This function was causing errors because product-list element doesn't exist
         // The checklist system now handles product display
+
+        // Handle sales tracking
+        function handleSalesTracking(event) {
+            const scanType = event.scan_type || 'load'; // Por defecto es load
+            const productId = event.product_id;
+            
+            if (scanType === 'load') {
+                console.log('📦 [LOAD] Producto cargado:', event.product_name);
+                loadedProducts.add(productId);
+            } else if (scanType === 'return') {
+                console.log('🔄 [RETURN] Producto retornado:', event.product_name);
+                returnedProducts.add(productId);
+            }
+            
+            updateSalesMetrics();
+        }
+        
+        // Update sales metrics
+        function updateSalesMetrics() {
+            const loadedCount = loadedProducts.size;
+            const returnedCount = returnedProducts.size;
+            const soldCount = loadedCount - returnedCount;
+            
+            console.log('💰 Sales Metrics Updated:', {
+                loaded: loadedCount,
+                returned: returnedCount,
+                sold: soldCount
+            });
+            
+            document.getElementById('loaded-count').textContent = loadedCount;
+            document.getElementById('returned-count').textContent = returnedCount;
+            document.getElementById('sold-count').textContent = soldCount;
+        }
+        
+        // Fetch sales summary from API
+        async function fetchSalesSummary(scanId) {
+            try {
+                console.log('📊 Fetching sales summary for scan:', scanId);
+                const response = await fetch(`http://localhost:3001/api/scans/${scanId}/sales-summary`);
+                
+                if (!response.ok) {
+                    console.error('❌ Failed to fetch sales summary:', response.status);
+                    return;
+                }
+                
+                const data = await response.json();
+                console.log('✅ Sales summary received:', data);
+                
+                // Update metrics with real data from backend
+                document.getElementById('loaded-count').textContent = data.stats.loaded_count;
+                document.getElementById('returned-count').textContent = data.stats.returned_count;
+                document.getElementById('sold-count').textContent = data.stats.sold_count;
+                
+                // Update local state
+                loadedProducts = new Set(data.loaded_products.map(p => p.product_id));
+                returnedProducts = new Set(data.returned_products.map(p => p.product_id));
+                
+                console.log('💰 Sales metrics updated from backend');
+            } catch (error) {
+                console.error('❌ Error fetching sales summary:', error);
+            }
+        }
 
         // Update metrics
         function updateMetrics() {

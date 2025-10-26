@@ -1,12 +1,16 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Package, CheckCircle, Target, Clock } from "lucide-react"
+import { Package, CheckCircle, Target, Clock, TrendingUp, BarChart3 } from "lucide-react"
 import { KPICard } from "./KPICard"
 import { ProductChecklist } from "./ProductChecklist"
+import { ImprovedProductChecklist } from "./ImprovedProductChecklist"
 import { RealtimeSalesInventory } from "./RealtimeSalesInventory"
+import { ProductSalesKPI } from "./ProductSalesKPI"
+import { SalesAnalysisDashboard } from "./SalesAnalysisDashboard"
 import { useTrolleyData } from "@/hooks/useTrolleyData"
 import { useWebSocket } from "@/hooks/useWebSocket"
+import { useProductSalesKPI } from "@/hooks/useProductSalesKPI"
 import { calculateDuration } from "@/utils/formatters"
 import type { ProductDetectedEvent, Detection } from "@/types"
 
@@ -17,6 +21,8 @@ export default function Dashboard() {
   const [recentDetections, setRecentDetections] = useState<Map<number, { confidence: number; detectedAt: string }>>(
     new Map(),
   )
+  const [lastCompletedScanId, setLastCompletedScanId] = useState<number | null>(null)
+  const [showSalesAnalysis, setShowSalesAnalysis] = useState(false)
 
   const { data, loading, error, refetch } = useTrolleyData(selectedTrolley)
 
@@ -87,6 +93,24 @@ export default function Dashboard() {
       ? Array.from(recentDetections.values()).reduce((sum, d) => sum + d.confidence, 0) / recentDetections.size
       : 0.94
 
+  // Obtener el último scan completado para mostrar KPIs de ventas
+  // Esto idealmente vendría de un endpoint, pero por ahora usaremos el active_scan
+  const currentScanId = data?.active_scan?.scan_id || lastCompletedScanId
+
+  // Obtener KPIs de ventas para mostrar en cards principales
+  const salesKPI = useProductSalesKPI(currentScanId)
+
+  // Si está en modo de análisis de ventas, mostrar dashboard especializado
+  if (showSalesAnalysis) {
+    return (
+      <SalesAnalysisDashboard 
+        trolleyId={selectedTrolley}
+        scanId={currentScanId}
+        onBack={() => setShowSalesAnalysis(false)}
+      />
+    )
+  }
+
   if (loading && !data) {
     return (
       <div className="h-screen bg-gray-50 flex items-center justify-center">
@@ -134,9 +158,16 @@ export default function Dashboard() {
             </div>
           )}
 
-          <div className="grid grid-cols-4 gap-3">
+          <div className="grid grid-cols-5 gap-3">
             <KPICard title="Productos" value={uniqueProducts} subtitle="únicos" icon={Package} color="blue" />
             <KPICard title="Escaneados" value={totalDetections} subtitle="total" icon={CheckCircle} color="green" />
+            <KPICard
+              title="Vendidos"
+              value={salesKPI.isLoading ? "..." : salesKPI.totalSold}
+              subtitle={salesKPI.isLoading ? "cargando" : `${salesKPI.saleRate.toFixed(0)}% tasa`}
+              icon={TrendingUp}
+              color="green"
+            />
             <KPICard
               title="Confianza"
               value={`${Math.round(avgConfidence * 100)}%`}
@@ -148,8 +179,20 @@ export default function Dashboard() {
           </div>
 
           <div className="flex-1 grid grid-cols-3 gap-3 overflow-hidden">
-            <div className="col-span-2 overflow-hidden">
-              <ProductChecklist products={data?.products || []} recentDetections={recentDetections} />
+            <div className="col-span-2 grid grid-rows-2 gap-3 overflow-hidden">
+              <div className="overflow-hidden">
+                <ImprovedProductChecklist 
+                  detectedProducts={data?.products || []} 
+                  recentDetections={recentDetections}
+                  title="📋 Checklist de Productos Escaneados"
+                />
+              </div>
+              <div className="overflow-hidden">
+                <ProductSalesKPI 
+                  scanId={currentScanId}
+                  showDetails={true}
+                />
+              </div>
             </div>
             <div className="flex flex-col gap-3 overflow-hidden">
               <RealtimeSalesInventory 
@@ -176,6 +219,18 @@ export default function Dashboard() {
                   </>
                 )}
               </div>
+              <button
+                onClick={() => setShowSalesAnalysis(true)}
+                disabled={!currentScanId}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg font-medium transition-colors ${
+                  currentScanId 
+                    ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                }`}
+              >
+                <BarChart3 className="w-4 h-4" />
+                Ver Análisis Completo de Ventas
+              </button>
             </div>
           </div>
         </div>
