@@ -121,11 +121,12 @@ export default function Dashboard() {
 
   return (
     <div className="h-screen bg-gray-50 flex flex-col overflow-hidden">
-      <div className="bg-white border-b border-gray-300 px-6 py-3">
+      {/* Header - Diseño iPad optimizado */}
+      <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-6">
-            <h1 className="text-xl font-semibold text-gray-900 tracking-tight">TROLLEY MONITOR</h1>
-            <p className="text-xs text-gray-500 font-mono">
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">TROLLEY MONITOR</h1>
+            <p className="text-sm text-gray-500 font-mono">
               {new Date().toLocaleString("es-ES", {
                 day: "2-digit",
                 month: "2-digit",
@@ -135,11 +136,11 @@ export default function Dashboard() {
               })}
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <select
               value={selectedTrolley}
               onChange={(e) => setSelectedTrolley(Number(e.target.value))}
-              className="bg-white text-gray-900 text-sm px-3 py-1.5 rounded border border-gray-300 focus:outline-none focus:ring-1 focus:ring-gray-400"
+              className="bg-white text-gray-900 text-base font-medium px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 shadow-sm"
             >
               <option value={1}>Trolley 1</option>
               <option value={2}>Trolley 2</option>
@@ -150,24 +151,19 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="flex-1 px-6 py-4 overflow-hidden">
-        <div className="h-full flex flex-col gap-3">
+      {/* Main Content - Optimizado para monitor pequeño/iPad */}
+      <div className="flex-1 px-6 py-5 overflow-hidden">
+        <div className="h-full flex flex-col gap-4">
           {error && (
-            <div className="bg-red-50 border border-red-300 rounded px-3 py-2">
-              <p className="text-red-700 text-xs">Error: {error}</p>
+            <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-2">
+              <p className="text-red-700 text-sm font-medium">Error: {error}</p>
             </div>
           )}
 
-          <div className="grid grid-cols-5 gap-3">
+          {/* KPI Cards - 4 columnas como en la imagen */}
+          <div className="grid grid-cols-4 gap-4">
             <KPICard title="Productos" value={uniqueProducts} subtitle="únicos" icon={Package} color="blue" />
             <KPICard title="Escaneados" value={totalDetections} subtitle="total" icon={CheckCircle} color="green" />
-            <KPICard
-              title="Vendidos"
-              value={salesKPI.isLoading ? "..." : salesKPI.totalSold}
-              subtitle={salesKPI.isLoading ? "cargando" : `${salesKPI.saleRate.toFixed(0)}% tasa`}
-              icon={TrendingUp}
-              color="green"
-            />
             <KPICard
               title="Confianza"
               value={`${Math.round(avgConfidence * 100)}%`}
@@ -178,59 +174,53 @@ export default function Dashboard() {
             <KPICard title="Tiempo" value={sessionTime} subtitle="activo" icon={Clock} color="orange" />
           </div>
 
-          <div className="flex-1 grid grid-cols-3 gap-3 overflow-hidden">
-            <div className="col-span-2 grid grid-rows-2 gap-3 overflow-hidden">
-              <div className="overflow-hidden">
-                <ImprovedProductChecklist 
-                  detectedProducts={data?.products || []} 
-                  recentDetections={recentDetections}
-                  title="📋 Checklist de Productos Escaneados"
-                />
-              </div>
-              <div className="overflow-hidden">
-                <ProductSalesKPI 
-                  scanId={currentScanId}
-                  showDetails={true}
-                />
-              </div>
-            </div>
-            <div className="flex flex-col gap-3 overflow-hidden">
-              <RealtimeSalesInventory 
-                trolleyId={selectedTrolley} 
-                loadedProducts={data?.products || []}
+          {/* Main Grid - Panel grande izquierda, panel derecho más pequeño */}
+          <div className="flex-1 grid grid-cols-[2fr_1fr] gap-4 overflow-hidden">
+            {/* Panel Izquierdo - Productos Detectados */}
+            <div className="flex flex-col overflow-hidden">
+              <ImprovedProductChecklist 
+                detectedProducts={data?.products || []} 
+                recentDetections={recentDetections}
+                title="PRODUCTOS DETECTADOS"
               />
-              <CategoryStats products={data?.products || []} />
-              <RecentActivity trolleyId={selectedTrolley} latestDetection={latestDetection} />
+            </div>
+
+            {/* Panel Derecho - Categorías y Actividad */}
+            <div className="flex flex-col gap-4 overflow-hidden">
+              <div className="flex-1 min-h-0">
+                <CategoryStats products={data?.products || []} />
+              </div>
+              <div className="flex-1 min-h-0">
+                <RecentActivity trolleyId={selectedTrolley} latestDetection={latestDetection} />
+              </div>
             </div>
           </div>
 
-          <div className="bg-white rounded border border-gray-300 px-4 py-2">
-            <div className="flex items-center justify-between text-xs">
-              <div className="flex items-center gap-3">
-                <span className={`font-medium ${data?.active_scan ? "text-red-600" : "text-gray-400"}`}>
+          {/* Footer - Status Bar */}
+          <div className="bg-white rounded-lg border border-gray-200 px-5 py-3 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4 text-sm">
+                <span className={`font-bold ${data?.active_scan ? "text-red-600" : "text-gray-400"}`}>
                   {data?.active_scan ? "● GRABANDO" : "○ DETENIDO"}
                 </span>
                 {data?.active_scan && (
                   <>
                     <span className="text-gray-300">|</span>
-                    <span className="text-gray-500 font-mono">Scan #{data.active_scan.scan_id}</span>
+                    <span className="text-gray-600 font-mono">Scan #{data.active_scan.scan_id}</span>
                     <span className="text-gray-300">|</span>
-                    <span className="text-gray-500 font-mono">Op. {data.active_scan.operator_id}</span>
+                    <span className="text-gray-600 font-mono">Op. {data.active_scan.operator_id}</span>
                   </>
                 )}
               </div>
-              <button
-                onClick={() => setShowSalesAnalysis(true)}
-                disabled={!currentScanId}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg font-medium transition-colors ${
-                  currentScanId 
-                    ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
-                }`}
-              >
-                <BarChart3 className="w-4 h-4" />
-                Ver Análisis Completo de Ventas
-              </button>
+              {salesKPI.totalSold > 0 && (
+                <button
+                  onClick={() => setShowSalesAnalysis(true)}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors text-sm shadow-sm"
+                >
+                  <BarChart3 className="w-4 h-4" />
+                  Ver Análisis de Ventas
+                </button>
+              )}
             </div>
           </div>
         </div>

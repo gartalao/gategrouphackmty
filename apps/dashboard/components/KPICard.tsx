@@ -17,16 +17,16 @@ const colorClasses = {
 
 export function KPICard({ title, value, subtitle, icon: Icon, color }: KPICardProps) {
   return (
-    <div className="bg-white rounded border border-gray-300 p-4">
-      <div className="flex items-center justify-between mb-2">
-        <div className={`p-2 rounded ${colorClasses[color]}`}>
-          <Icon className="w-4 h-4" />
+    <div className="bg-white rounded-lg border border-gray-200 p-5 shadow-sm hover:shadow-md transition-shadow">
+      <div className="flex items-center justify-center mb-3">
+        <div className={`p-3 rounded-full ${colorClasses[color]}`}>
+          <Icon className="w-6 h-6" />
         </div>
       </div>
-      <div className="space-y-0.5">
-        <p className="text-gray-500 text-xs font-medium uppercase tracking-wide">{title}</p>
-        <p className="text-gray-900 text-2xl font-bold">{value}</p>
-        <p className="text-gray-400 text-xs">{subtitle}</p>
+      <div className="space-y-1 text-center">
+        <p className="text-gray-500 text-xs font-semibold uppercase tracking-wider">{title}</p>
+        <p className="text-gray-900 text-3xl font-bold tabular-nums">{value}</p>
+        <p className="text-gray-400 text-xs font-medium">{subtitle}</p>
       </div>
     </div>
   )

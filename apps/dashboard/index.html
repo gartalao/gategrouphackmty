@@ -3,219 +3,421 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Trolley Dashboard</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <title>Trolley Monitor - GateGroup</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+        
+        .tabular-nums {
+            font-feature-settings: 'tnum';
+            font-variant-numeric: tabular-nums;
+        }
+    </style>
   </head>
-<body class="bg-gray-50">
-    <div class="min-h-screen">
+<body class="bg-gray-50 antialiased">
+    <div class="h-screen flex flex-col overflow-hidden">
+        
         <!-- Header -->
-        <div class="bg-white border-b border-gray-300 px-6 py-4">
+        <div class="bg-white border-b border-gray-200 px-6 py-4 shadow-sm">
             <div class="flex items-center justify-between">
-                <div>
-                    <h1 class="text-xl font-semibold text-gray-900">🚀 Smart Trolley Dashboard</h1>
-                    <p class="text-sm text-gray-500">Monitoreo en tiempo real</p>
+                <div class="flex items-center gap-6">
+                    <h1 class="text-2xl font-bold text-gray-900 tracking-tight">TROLLEY MONITOR</h1>
+                    <p class="text-sm text-gray-500 font-mono tabular-nums" id="current-time">26/10/2025, 06:28</p>
                 </div>
                 <div class="flex items-center gap-4">
-                    <div id="connection-status" class="flex items-center gap-2">
-                        <div class="w-3 h-3 bg-red-500 rounded-full" id="status-dot"></div>
-                        <span class="text-sm text-gray-600" id="status-text">Desconectado</span>
+                    <select id="trolley-selector" class="bg-white text-gray-900 text-base font-medium px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 shadow-sm">
+                        <option value="1">Trolley 1</option>
+                        <option value="2">Trolley 2</option>
+                        <option value="3">Trolley 3</option>
+                    </select>
+                    <div id="connection-indicator" class="flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-semibold bg-red-50 text-red-700 border-red-200">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 111.414 1.414m-1.414-1.414L3 3m8.293 8.293l1.414 1.414"/>
+                        </svg>
+                        <span id="connection-text">DESCONECTADO</span>
+                        <div class="w-2 h-2 rounded-full bg-red-600" id="connection-dot"></div>
                     </div>
-                    <a href="http://localhost:3002" target="_blank" 
-                       class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors">
-                        🌐 Web Camera App
-                    </a>
                 </div>
             </div>
         </div>
 
         <!-- Main Content -->
-        <div class="p-6">
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- KPIs -->
-                <div class="lg:col-span-1">
-                    <div class="bg-white rounded-lg border border-gray-300 p-6 mb-6">
-                        <h2 class="text-lg font-semibold text-gray-900 mb-4">📊 Métricas</h2>
-                        <div class="space-y-4">
-                            <div class="flex justify-between items-center">
-                                <span class="text-sm text-gray-600">Productos Detectados</span>
-                                <span class="text-lg font-bold text-blue-600" id="products-count">0</span>
+        <div class="flex-1 px-6 py-5 overflow-hidden">
+            <div class="h-full flex flex-col gap-4">
+                
+                <!-- KPI Cards -->
+                <div class="grid grid-cols-4 gap-4">
+                    <!-- Productos -->
+                    <div class="bg-white rounded-lg border border-gray-200 p-5 shadow-sm">
+                        <div class="flex items-center justify-center mb-3">
+                            <div class="p-3 rounded-full bg-gray-100">
+                                <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                                </svg>
                             </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-sm text-gray-600">Confianza Promedio</span>
-                                <span class="text-lg font-bold text-green-600" id="avg-confidence">0%</span>
+                        </div>
+                        <div class="text-center space-y-1">
+                            <p class="text-gray-500 text-xs font-semibold uppercase tracking-wider">PRODUCTOS</p>
+                            <p class="text-gray-900 text-3xl font-bold tabular-nums" id="kpi-products">0</p>
+                            <p class="text-gray-400 text-xs font-medium">únicos</p>
+                        </div>
                             </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-sm text-gray-600">Tiempo Activo</span>
-                                <span class="text-lg font-bold text-purple-600" id="active-time">0s</span>
+
+                    <!-- Escaneados -->
+                    <div class="bg-white rounded-lg border border-gray-200 p-5 shadow-sm">
+                        <div class="flex items-center justify-center mb-3">
+                            <div class="p-3 rounded-full bg-gray-100">
+                                <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
                             </div>
+                        </div>
+                        <div class="text-center space-y-1">
+                            <p class="text-gray-500 text-xs font-semibold uppercase tracking-wider">ESCANEADOS</p>
+                            <p class="text-gray-900 text-3xl font-bold tabular-nums" id="kpi-scanned">0</p>
+                            <p class="text-gray-400 text-xs font-medium">total</p>
                         </div>
                     </div>
 
-                    <!-- Sales Inventory -->
-                    <div class="bg-white rounded-lg border border-gray-300 p-6">
-                        <h2 class="text-lg font-semibold text-gray-900 mb-4">💰 Inventario de Ventas</h2>
-                        <div class="space-y-3">
-                            <div class="bg-blue-50 rounded p-3">
-                                <div class="flex justify-between">
-                                    <span class="text-sm text-blue-700">Cargados</span>
-                                    <span class="font-bold text-blue-800" id="loaded-count">0</span>
+                    <!-- Confianza -->
+                    <div class="bg-white rounded-lg border border-gray-200 p-5 shadow-sm">
+                        <div class="flex items-center justify-center mb-3">
+                            <div class="p-3 rounded-full bg-gray-100">
+                                <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="text-center space-y-1">
+                            <p class="text-gray-500 text-xs font-semibold uppercase tracking-wider">CONFIANZA</p>
+                            <p class="text-gray-900 text-3xl font-bold tabular-nums" id="kpi-confidence">94%</p>
+                            <p class="text-gray-400 text-xs font-medium">precisión</p>
                                 </div>
                             </div>
-                            <div class="bg-green-50 rounded p-3">
-                                <div class="flex justify-between">
-                                    <span class="text-sm text-green-700">Vendidos</span>
-                                    <span class="font-bold text-green-800" id="sold-count">0</span>
-                                </div>
+
+                    <!-- Tiempo -->
+                    <div class="bg-white rounded-lg border border-gray-200 p-5 shadow-sm">
+                        <div class="flex items-center justify-center mb-3">
+                            <div class="p-3 rounded-full bg-gray-100">
+                                <svg class="w-6 h-6 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
                             </div>
-                            <div class="bg-orange-50 rounded p-3">
-                                <div class="flex justify-between">
-                                    <span class="text-sm text-orange-700">Retornados</span>
-                                    <span class="font-bold text-orange-800" id="returned-count">0</span>
-                                </div>
-                            </div>
+                        </div>
+                        <div class="text-center space-y-1">
+                            <p class="text-gray-500 text-xs font-semibold uppercase tracking-wider">TIEMPO</p>
+                            <p class="text-gray-900 text-3xl font-bold tabular-nums" id="kpi-time">7s</p>
+                            <p class="text-gray-400 text-xs font-medium">activo</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- Product Checklist -->
-                <div class="lg:col-span-2">
-                    <div class="bg-white rounded-lg border border-gray-300 h-full">
-                        <div class="px-6 py-4 border-b border-gray-300">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <h2 class="text-lg font-semibold text-gray-900">✅ Checklist de Productos</h2>
-                                    <p class="text-sm text-gray-500">Detección en tiempo real</p>
-                                </div>
-                                <div class="flex items-center gap-3">
-                                    <select id="checklist-selector" class="bg-white text-gray-900 text-sm px-3 py-1.5 rounded border border-gray-300 focus:outline-none focus:ring-1 focus:ring-gray-400">
+                <!-- Main Grid -->
+                <div class="flex-1 grid grid-cols-3 gap-4 overflow-hidden">
+                    <!-- Panel Izquierdo - Checklist de Productos -->
+                    <div class="col-span-2 bg-white rounded-lg border border-gray-200 shadow-sm flex flex-col overflow-hidden">
+                        <div class="px-5 py-4 border-b border-gray-200 flex items-center justify-between">
+                            <h2 class="text-sm font-bold text-gray-900 uppercase tracking-wide">PRODUCTOS DETECTADOS</h2>
+                            <select id="checklist-selector" class="bg-white text-gray-900 text-xs px-3 py-1.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-1 focus:ring-gray-400">
                                         <option value="">Seleccionar Checklist</option>
-                                        <option value="bebidas">🥤 Checklist Bebidas (Sin Takis Fuego)</option>
-                                        <option value="snacks">🍿 Checklist Snacks (Sin Santa Clara)</option>
-                                        <option value="refrescos">🥤 Checklist Refrescos (Sin Doritos)</option>
-                                        <option value="papas">🥔 Checklist Papas (Sin Coca-Cola Light)</option>
-                                        <option value="mixto">🛒 Checklist Mixto (Sin Lays)</option>
+                                <option value="bebidas">🥤 Checklist Bebidas</option>
+                                <option value="snacks">🍿 Checklist Snacks</option>
+                                <option value="refrescos">🥤 Checklist Refrescos</option>
+                                <option value="papas">🥔 Checklist Papas</option>
+                                <option value="mixto">🛒 Checklist Mixto</option>
                                     </select>
-                                    <button id="test-detection-btn" onclick="simulateProductDetection()" class="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1.5 rounded text-sm font-medium transition-colors">
-                                        🧪 Test 1 Producto
-                                    </button>
-                                    <button id="test-all-btn" onclick="simulateAllProductsDetection()" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1.5 rounded text-sm font-medium transition-colors">
-                                        🚀 Test Todos
-                                    </button>
-                                    <div class="flex items-center gap-2">
-                                        <div id="connection-status" class="w-3 h-3 rounded-full bg-red-500"></div>
-                                        <span class="text-xs text-gray-500">Cámara</span>
                                     </div>
-                                    <div class="text-sm text-gray-600">
-                                        <span id="checklist-progress">0/0</span> completados
-                                    </div>
+                        <div class="flex-1 overflow-y-auto p-5">
+                            <div id="checklist-list" class="space-y-3">
+                                <div class="flex items-center justify-center h-full">
+                                    <p class="text-base text-gray-400 font-medium">Selecciona una checklist para comenzar</p>
                                 </div>
                             </div>
                         </div>
-                        <div class="p-6">
-                            <div id="checklist-progress-bar" class="mb-4 hidden">
-                                <div class="flex justify-between text-sm text-gray-600 mb-1">
-                                    <span>Progreso</span>
-                                    <span id="progress-percentage">0%</span>
+                    </div>
+
+                    <!-- Panel Derecho - Info Vuelo y Actividad -->
+                    <div class="flex flex-col gap-4 overflow-hidden">
+                        <!-- Información del Vuelo -->
+                        <div class="flex-1 bg-white rounded-lg border border-gray-200 shadow-sm flex flex-col overflow-hidden">
+                            <div class="px-5 py-4 border-b border-gray-200">
+                                <h2 class="text-sm font-bold text-gray-900 uppercase tracking-wide">INFORMACIÓN DEL VUELO</h2>
                                 </div>
-                                <div class="w-full bg-gray-200 rounded-full h-2">
-                                    <div id="progress-bar" class="bg-green-500 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                            <div class="flex-1 overflow-y-auto p-5">
+                                <div id="flight-info" class="space-y-3">
+                                    <!-- Se llenará con JS -->
                                 </div>
                             </div>
-                            <div id="checklist-list" class="space-y-2">
-                                <div class="text-center py-8 text-gray-400">
-                                    <p class="text-sm">Selecciona una checklist para comenzar</p>
-                                    <p class="text-xs mt-1">Los productos se marcarán automáticamente conforme se detecten</p>
+                        </div>
+
+                        <!-- Actividad / Inventario de Ventas -->
+                        <div class="flex-1 bg-white rounded-lg border border-gray-200 shadow-sm flex flex-col overflow-hidden">
+                            <div class="px-5 py-4 border-b border-gray-200">
+                                <h2 class="text-sm font-bold text-gray-900 uppercase tracking-wide">ACTIVIDAD</h2>
+                            </div>
+                            <div class="flex-1 overflow-y-auto p-5">
+                                <div id="activity-list" class="space-y-3">
+                                    <!-- Métricas de Ventas -->
+                                    <div class="bg-blue-50 rounded-lg p-3 border border-blue-100">
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-xs text-blue-700 font-semibold uppercase">Cargados</span>
+                                            <span class="font-bold text-blue-800 text-lg tabular-nums" id="loaded-count">0</span>
+                                        </div>
+                                    </div>
+                                    <div class="bg-green-50 rounded-lg p-3 border border-green-100">
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-xs text-green-700 font-semibold uppercase">Vendidos</span>
+                                            <span class="font-bold text-green-800 text-lg tabular-nums" id="sold-count">0</span>
+                                        </div>
+                                    </div>
+                                    <div class="bg-orange-50 rounded-lg p-3 border border-orange-100">
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-xs text-orange-700 font-semibold uppercase">Retornados</span>
+                                            <span class="font-bold text-orange-800 text-lg tabular-nums" id="returned-count">0</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+
+                <!-- Footer - Status Bar -->
+                <div class="bg-white rounded-lg border border-gray-200 px-5 py-3 shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-4 text-sm">
+                            <span class="font-bold text-gray-400" id="recording-status">○ DETENIDO</span>
+                            <span class="text-gray-300">|</span>
+                            <span class="text-gray-600 font-mono" id="scan-info">Scan #1</span>
+                            <span class="text-gray-300">|</span>
+                            <span class="text-gray-600 font-mono" id="operator-info">Op. 1</span>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
 
     <script>
-        // WebSocket Connection
+        // Global state
         let socket = null;
         let isConnected = false;
         let productsDetected = new Map();
         let startTime = Date.now();
         
         // Sales tracking state
+        let loadedProducts = new Set();
+        let returnedProducts = new Set();
         let currentScanId = null;
-        let loadedProducts = new Set(); // IDs de productos cargados
-        let returnedProducts = new Set(); // IDs de productos retornados
-        let lastCompletedScanId = null;
         
-        // Checklist System - 5 CHECKLISTS DE 5 PRODUCTOS CADA UNA
+        // Flight data - Hardcodeado por trolley
+        const FLIGHT_DATA = {
+            1: {
+                flightNumber: 'AM 456',
+                route: 'MEX → NYC',
+                origin: 'Ciudad de México',
+                destination: 'Nueva York',
+                departureTime: '14:30',
+                date: '26/10/2025',
+                aircraft: 'Boeing 737-800',
+                passengers: 186,
+                class: 'Económica'
+            },
+            2: {
+                flightNumber: 'AM 789',
+                route: 'GDL → LAX',
+                origin: 'Guadalajara',
+                destination: 'Los Ángeles',
+                departureTime: '16:45',
+                date: '26/10/2025',
+                aircraft: 'Airbus A320',
+                passengers: 156,
+                class: 'Premier'
+            },
+            3: {
+                flightNumber: 'AM 123',
+                route: 'MTY → MIA',
+                origin: 'Monterrey',
+                destination: 'Miami',
+                departureTime: '18:15',
+                date: '26/10/2025',
+                aircraft: 'Boeing 787-9',
+                passengers: 243,
+                class: 'Clase AM Plus'
+            }
+        };
+        
+        // Checklist state
         const CHECKLIST_TEMPLATES = {
             bebidas: {
                 id: 'bebidas',
                 name: '🥤 Checklist Bebidas',
-                description: 'Sin Takis Fuego',
                 products: [
-                    { id: 1, name: 'Santa Clara', category: 'Bebidas' },
-                    { id: 2, name: 'Coca-Cola', category: 'Bebidas' },
-                    { id: 3, name: 'Coca-Cola Light', category: 'Bebidas' },
-                    { id: 5, name: 'Doritos', category: 'Snacks' },
-                    { id: 6, name: 'Lays (Sabritas)', category: 'Snacks' }
+                    { id: 1, name: 'Santa Clara Chocolate', category: 'Confitería' },
+                    { id: 2, name: 'Coca-Cola Regular Lata', category: 'Bebidas' },
+                    { id: 3, name: 'Coca-Cola Light Lata', category: 'Bebidas' },
+                    { id: 5, name: 'Doritos Nacho', category: 'Snacks' },
+                    { id: 6, name: 'Lays Original', category: 'Snacks' }
                 ]
             },
             snacks: {
                 id: 'snacks',
                 name: '🍿 Checklist Snacks',
-                description: 'Sin Santa Clara',
                 products: [
-                    { id: 2, name: 'Coca-Cola', category: 'Bebidas' },
-                    { id: 3, name: 'Coca-Cola Light', category: 'Bebidas' },
+                    { id: 2, name: 'Coca-Cola Regular Lata', category: 'Bebidas' },
+                    { id: 3, name: 'Coca-Cola Light Lata', category: 'Bebidas' },
                     { id: 4, name: 'Takis Fuego', category: 'Snacks' },
-                    { id: 5, name: 'Doritos', category: 'Snacks' },
-                    { id: 6, name: 'Lays (Sabritas)', category: 'Snacks' }
+                    { id: 5, name: 'Doritos Nacho', category: 'Snacks' },
+                    { id: 6, name: 'Lays Original', category: 'Snacks' }
                 ]
             },
             refrescos: {
                 id: 'refrescos',
                 name: '🥤 Checklist Refrescos',
-                description: 'Sin Doritos',
                 products: [
-                    { id: 1, name: 'Santa Clara', category: 'Bebidas' },
-                    { id: 2, name: 'Coca-Cola', category: 'Bebidas' },
-                    { id: 3, name: 'Coca-Cola Light', category: 'Bebidas' },
+                    { id: 1, name: 'Santa Clara Chocolate', category: 'Confitería' },
+                    { id: 2, name: 'Coca-Cola Regular Lata', category: 'Bebidas' },
+                    { id: 3, name: 'Coca-Cola Light Lata', category: 'Bebidas' },
                     { id: 4, name: 'Takis Fuego', category: 'Snacks' },
-                    { id: 6, name: 'Lays (Sabritas)', category: 'Snacks' }
+                    { id: 6, name: 'Lays Original', category: 'Snacks' }
                 ]
             },
             papas: {
                 id: 'papas',
                 name: '🥔 Checklist Papas',
-                description: 'Sin Coca-Cola Light',
                 products: [
-                    { id: 1, name: 'Santa Clara', category: 'Bebidas' },
-                    { id: 2, name: 'Coca-Cola', category: 'Bebidas' },
+                    { id: 1, name: 'Santa Clara Chocolate', category: 'Confitería' },
+                    { id: 2, name: 'Coca-Cola Regular Lata', category: 'Bebidas' },
                     { id: 4, name: 'Takis Fuego', category: 'Snacks' },
-                    { id: 5, name: 'Doritos', category: 'Snacks' },
-                    { id: 6, name: 'Lays (Sabritas)', category: 'Snacks' }
+                    { id: 5, name: 'Doritos Nacho', category: 'Snacks' },
+                    { id: 6, name: 'Lays Original', category: 'Snacks' }
                 ]
             },
             mixto: {
                 id: 'mixto',
                 name: '🛒 Checklist Mixto',
-                description: 'Sin Lays (Sabritas)',
                 products: [
-                    { id: 1, name: 'Santa Clara', category: 'Bebidas' },
-                    { id: 2, name: 'Coca-Cola', category: 'Bebidas' },
-                    { id: 3, name: 'Coca-Cola Light', category: 'Bebidas' },
+                    { id: 1, name: 'Santa Clara Chocolate', category: 'Confitería' },
+                    { id: 2, name: 'Coca-Cola Regular Lata', category: 'Bebidas' },
+                    { id: 3, name: 'Coca-Cola Light Lata', category: 'Bebidas' },
                     { id: 4, name: 'Takis Fuego', category: 'Snacks' },
-                    { id: 5, name: 'Doritos', category: 'Snacks' }
+                    { id: 5, name: 'Doritos Nacho', category: 'Snacks' }
                 ]
             }
         };
         
         let activeChecklist = null;
-        let checklistItems = new Map(); // productId -> { status, detectedAt, confidence, count }
+        let checklistItems = new Map();
 
-        // Checklist Functions
+        // Category emojis
+        const categoryEmojis = {
+            'Bebidas': '🥤',
+            'Snacks': '🍿',
+            'Botanas': '🥔',
+            'Confitería': '🍫',
+            'Lácteos': '🥛',
+            'default': '📦'
+        };
+
+        function getCategoryEmoji(category) {
+            return categoryEmojis[category] || categoryEmojis.default;
+        }
+
+        // Update clock
+        function updateClock() {
+            const now = new Date();
+            const formatted = now.toLocaleString('es-ES', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            document.getElementById('current-time').textContent = formatted;
+        }
+
+        // Update connection status
+        function updateConnectionStatus(connected) {
+            isConnected = connected;
+            const indicator = document.getElementById('connection-indicator');
+            const text = document.getElementById('connection-text');
+            const dot = document.getElementById('connection-dot');
+            
+            if (connected) {
+                indicator.className = 'flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-semibold bg-green-50 text-green-700 border-green-200';
+                text.textContent = 'CONECTADO';
+                dot.className = 'w-2 h-2 rounded-full bg-green-600 animate-pulse';
+            } else {
+                indicator.className = 'flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-semibold bg-red-50 text-red-700 border-red-200';
+                text.textContent = 'DESCONECTADO';
+                dot.className = 'w-2 h-2 rounded-full bg-red-600';
+            }
+        }
+
+        // Handle sales tracking
+        function handleSalesTracking(event) {
+            const scanType = event.scan_type || 'load';
+            const productId = event.product_id;
+            
+            if (scanType === 'load') {
+                console.log('📦 [LOAD] Producto cargado:', event.product_name);
+                loadedProducts.add(productId);
+            } else if (scanType === 'return') {
+                console.log('🔄 [RETURN] Producto retornado:', event.product_name);
+                returnedProducts.add(productId);
+            }
+            
+            updateSalesMetrics();
+        }
+
+        // Update sales metrics
+        function updateSalesMetrics() {
+            const loadedCount = loadedProducts.size;
+            const returnedCount = returnedProducts.size;
+            const soldCount = loadedCount - returnedCount;
+            
+            console.log('💰 Sales Metrics Updated:', {
+                loaded: loadedCount,
+                returned: returnedCount,
+                sold: soldCount
+            });
+            
+            document.getElementById('loaded-count').textContent = loadedCount;
+            document.getElementById('returned-count').textContent = returnedCount;
+            document.getElementById('sold-count').textContent = soldCount;
+        }
+
+        // Handle product detection
+        function handleProductDetected(event) {
+            const productId = event.product_id;
+            const productName = event.product_name;
+            const category = event.category || 'Sin categoría';
+            const confidence = event.confidence;
+
+            // Store or update product
+            if (!productsDetected.has(productId)) {
+                productsDetected.set(productId, {
+                    id: productId,
+                    name: productName,
+                    category: category,
+                    confidence: confidence,
+                    count: 1
+                });
+            } else {
+                const existing = productsDetected.get(productId);
+                existing.count += 1;
+            }
+
+            updateKPIs();
+        }
+
+        // Checklist functions
         function loadChecklist(templateId) {
             const template = CHECKLIST_TEMPLATES[templateId];
             if (!template) return;
@@ -233,16 +435,15 @@
             });
             
             renderChecklist();
-            updateChecklistProgress();
         }
         
         function renderChecklist() {
             const checklistList = document.getElementById('checklist-list');
+            
             if (!activeChecklist) {
                 checklistList.innerHTML = `
-                    <div class="text-center py-8 text-gray-400">
-                        <p class="text-sm">Selecciona una checklist para comenzar</p>
-                        <p class="text-xs mt-1">Los productos se marcarán automáticamente conforme se detecten</p>
+                    <div class="flex items-center justify-center h-full">
+                        <p class="text-base text-gray-400 font-medium">Selecciona una checklist para comenzar</p>
                     </div>
                 `;
                 return;
@@ -253,41 +454,41 @@
                 const status = item ? item.status : 'pending';
                 const detectedAt = item ? item.detectedAt : null;
                 const confidence = item ? item.confidence : 0;
+                const confidencePercent = Math.round(confidence * 100);
                 
-                let statusIcon = '⏳';
-                let statusClass = 'text-gray-500';
-                let bgClass = 'bg-gray-50';
+                const isDetected = status === 'detected' || status === 'completed';
                 
-                if (status === 'detected') {
-                    statusIcon = '✅';
-                    statusClass = 'text-green-600';
-                    bgClass = 'bg-green-50';
-                } else if (status === 'completed') {
-                    statusIcon = '🎯';
-                    statusClass = 'text-blue-600';
-                    bgClass = 'bg-blue-50';
-                }
+                const time = detectedAt 
+                    ? new Date(detectedAt).toLocaleTimeString('es-ES', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit'
+                    })
+                    : '--:--:--';
                 
                 return `
-                    <div class="product-item ${bgClass} rounded-lg p-3 transition-all duration-300">
-                        <div class="flex items-center justify-between">
+                    <div class="bg-${isDetected ? 'gray' : 'white'}-50 rounded-lg border border-gray-200 p-4 transition-all ${isDetected ? 'shadow-sm' : ''}">
+                        <div class="flex items-center justify-between mb-2">
                             <div class="flex items-center gap-3">
-                                <span class="text-lg">${statusIcon}</span>
+                                ${isDetected 
+                                    ? '<svg class="w-5 h-5 text-gray-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
+                                    : '<svg class="w-5 h-5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2"/></svg>'
+                                }
                                 <div>
-                                    <div class="product-name ${statusClass}">${product.name}</div>
-                                    <div class="text-xs text-gray-500">${product.category}</div>
+                                    <h3 class="text-gray-900 font-semibold text-base">${product.name}</h3>
+                                    <p class="text-gray-500 text-sm">${product.category}</p>
                                 </div>
                             </div>
-                            <div class="text-right">
-                                ${confidence > 0 ? `<div class="text-xs text-gray-500">${Math.round(confidence * 100)}%</div>` : ''}
-                                ${detectedAt ? `<div class="text-xs text-gray-400">${new Date(detectedAt).toLocaleTimeString()}</div>` : ''}
-                            </div>
+                            <span class="text-sm text-gray-500 font-mono tabular-nums">${time}</span>
                         </div>
-                        ${confidence > 0 ? `
-                            <div class="mt-2">
-                                <div class="w-full bg-gray-200 rounded-full h-1">
-                                    <div class="bg-green-500 h-1 rounded-full transition-all duration-500" style="width: ${confidence * 100}%"></div>
+                        ${isDetected ? `
+                            <div class="flex items-center gap-3 mt-3">
+                                <div class="flex-1">
+                                    <div class="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                                        <div class="h-full bg-gray-700 transition-all duration-500" style="width: ${confidencePercent}%"></div>
+                                    </div>
                                 </div>
+                                <span class="text-sm text-gray-600 font-mono font-semibold tabular-nums">${confidencePercent}%</span>
                             </div>
                         ` : ''}
                     </div>
@@ -297,192 +498,121 @@
             checklistList.innerHTML = items;
         }
         
-        function updateChecklistProgress() {
-            if (!activeChecklist) return;
-            
-            const totalItems = activeChecklist.products.length;
-            const completedItems = Array.from(checklistItems.values()).filter(item => item.status === 'detected' || item.status === 'completed').length;
-            const percentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
-            
-            document.getElementById('checklist-progress').textContent = `${completedItems}/${totalItems}`;
-            document.getElementById('progress-percentage').textContent = `${percentage}%`;
-            document.getElementById('progress-bar').style.width = `${percentage}%`;
-            
-            const progressBar = document.getElementById('checklist-progress-bar');
-            if (totalItems > 0) {
-                progressBar.classList.remove('hidden');
-            } else {
-                progressBar.classList.add('hidden');
-            }
-        }
-        
         function handleChecklistProductDetected(event) {
             if (!activeChecklist) {
                 console.log('⚠️ No active checklist selected');
                 return;
             }
             
-            console.log('🎯 Checklist: Processing detection for:', event.product_name);
-            
-            // Buscar producto por nombre (más flexible)
             const productName = event.product_name;
-            let product = activeChecklist.products.find(p => p.name === productName);
-            
-            // Casos especiales para productos similares
-            if (!product) {
-                // Caso especial: Coca-Cola Light Lata -> Coca-Cola Light
-                if (productName.toLowerCase().includes('coca-cola light')) {
-                    product = activeChecklist.products.find(p => p.name.toLowerCase().includes('coca-cola light'));
-                    if (product) {
-                        console.log('✅ Special case match: Coca-Cola Light');
-                    }
-                }
-                // Caso especial: Coca-Cola Regular Lata -> Coca-Cola
-                else if (productName.toLowerCase().includes('coca-cola regular') || 
-                        (productName.toLowerCase().includes('coca-cola') && !productName.toLowerCase().includes('light'))) {
-                    product = activeChecklist.products.find(p => p.name.toLowerCase() === 'coca-cola');
-                    if (product) {
-                        console.log('✅ Special case match: Coca-Cola Regular');
-                    }
-                }
-            }
-            
-            // Si no encuentra exacto, buscar por similitud mejorada
-            if (!product) {
-                console.log('🔍 Trying fuzzy search for:', productName);
-                product = activeChecklist.products.find(p => {
-                    const name1 = p.name.toLowerCase().replace(/[^a-z0-9]/g, '');
-                    const name2 = productName.toLowerCase().replace(/[^a-z0-9]/g, '');
-                    
-                    // Mejorar la lógica de matching para evitar falsos positivos
-                    // Priorizar matches más específicos y completos
-                    const isExactMatch = name1 === name2;
-                    const isContainedMatch = name1.includes(name2) || name2.includes(name1);
-                    const isPartialMatch = name1.split(' ').some(word => name2.includes(word)) || 
-                                         name2.split(' ').some(word => name1.includes(word));
-                    
-                    // Solo considerar match si es significativo (más de 3 caracteres)
-                    const isSignificantMatch = name2.length > 3 && (isExactMatch || isContainedMatch || isPartialMatch);
-                    
-                    if (isSignificantMatch) {
-                        console.log('✅ Found match:', p.name, 'for', productName, '(type:', 
-                                  isExactMatch ? 'exact' : isContainedMatch ? 'contained' : 'partial', ')');
-                    }
-                    return isSignificantMatch;
-                });
-            }
+            let product = activeChecklist.products.find(p => {
+                const name1 = p.name.toLowerCase();
+                const name2 = productName.toLowerCase();
+                return name1.includes(name2) || name2.includes(name1);
+            });
             
             if (!product) {
-                console.log('❌ Product not found in current checklist:', productName);
-                console.log('📋 Available products:', activeChecklist.products.map(p => p.name));
+                console.log('❌ Product not in checklist:', productName);
                 return;
             }
             
             const currentItem = checklistItems.get(product.id);
             if (!currentItem) return;
             
-            // Update item status
             currentItem.status = 'detected';
             currentItem.detectedAt = event.detected_at;
             currentItem.confidence = event.confidence;
             
             checklistItems.set(product.id, currentItem);
             
-            console.log('✅ Checklist: Updated product:', product.name, 'Status:', currentItem.status);
-            
-            // Re-render checklist
+            console.log('✅ Checklist item updated:', product.name);
             renderChecklist();
-            updateChecklistProgress();
-            
-            // Add animation effect
-            setTimeout(() => {
-                const itemElements = document.querySelectorAll('.product-item');
-                itemElements.forEach(element => {
-                    if (element.textContent.includes(product.name)) {
-                        element.classList.add('animate-pulse');
-                        setTimeout(() => {
-                            element.classList.remove('animate-pulse');
-                        }, 1000);
-                    }
-                });
-            }, 100);
         }
-        
-        // Test function to simulate product detections
-        function simulateProductDetection() {
-            if (!activeChecklist) {
-                console.log('⚠️ No active checklist selected');
-                alert('⚠️ Primero selecciona una checklist');
+
+        // Update KPIs
+        function updateKPIs() {
+            const uniqueProducts = productsDetected.size;
+            const totalDetections = Array.from(productsDetected.values()).reduce((sum, p) => sum + p.count, 0);
+            const avgConfidence = productsDetected.size > 0
+                ? Array.from(productsDetected.values()).reduce((sum, p) => sum + p.confidence, 0) / productsDetected.size
+                : 0.94;
+            const activeTime = Math.floor((Date.now() - startTime) / 1000);
+
+            document.getElementById('kpi-products').textContent = uniqueProducts;
+            document.getElementById('kpi-scanned').textContent = totalDetections;
+            document.getElementById('kpi-confidence').textContent = Math.round(avgConfidence * 100) + '%';
+            
+            const minutes = Math.floor(activeTime / 60);
+            const seconds = activeTime % 60;
+            document.getElementById('kpi-time').textContent = minutes > 0 
+                ? `${minutes}m ${seconds}s` 
+                : `${seconds}s`;
+        }
+
+        // Update flight info
+        function updateFlightInfo() {
+            const trolleyId = parseInt(document.getElementById('trolley-selector').value);
+            const flight = FLIGHT_DATA[trolleyId];
+            const container = document.getElementById('flight-info');
+            
+            if (!flight) {
+                container.innerHTML = `
+                    <div class="flex items-center justify-center h-full">
+                        <p class="text-base text-gray-400 font-medium">Sin datos de vuelo</p>
+                    </div>
+                `;
                 return;
             }
             
-            const products = activeChecklist.products;
-            const randomProduct = products[Math.floor(Math.random() * products.length)];
-            
-            const mockEvent = {
-                product_id: randomProduct.id,
-                product_name: randomProduct.name,
-                category: randomProduct.category,
-                confidence: 0.85 + Math.random() * 0.14,
-                detected_at: new Date().toISOString()
-            };
-            
-            console.log('🧪 Simulating detection:', mockEvent);
-            console.log('📋 Current checklist:', activeChecklist.name);
-            console.log('📦 Available products:', activeChecklist.products.map(p => p.name));
-            
-            handleChecklistProductDetected(mockEvent);
-        }
-        
-        // Test function to simulate ALL products detection
-        function simulateAllProductsDetection() {
-            if (!activeChecklist) {
-                console.log('⚠️ No active checklist selected');
-                alert('⚠️ Primero selecciona una checklist');
-                return;
-            }
-            
-            console.log('🧪 Simulating ALL products detection for:', activeChecklist.name);
-            
-            activeChecklist.products.forEach((product, index) => {
-                setTimeout(() => {
-                    const mockEvent = {
-                        product_id: product.id,
-                        product_name: product.name,
-                        category: product.category,
-                        confidence: 0.85 + Math.random() * 0.14,
-                        detected_at: new Date().toISOString()
-                    };
-                    
-                    console.log(`🧪 Simulating detection ${index + 1}/${activeChecklist.products.length}:`, mockEvent);
-                    handleChecklistProductDetected(mockEvent);
-                }, index * 1000); // 1 segundo entre cada detección
-            });
-        }
-        
-        // Initialize checklist selector
-        function initChecklistSelector() {
-            const selector = document.getElementById('checklist-selector');
-            if (!selector) {
-                console.error('❌ Checklist selector not found');
-                return;
-            }
-            
-            selector.addEventListener('change', (e) => {
-                const templateId = e.target.value;
-                console.log('📋 Checklist selected:', templateId);
-                
-                if (templateId) {
-                    loadChecklist(templateId);
-                } else {
-                    activeChecklist = null;
-                    checklistItems.clear();
-                    renderChecklist();
-                    updateChecklistProgress();
-                }
-            });
-            
-            console.log('✅ Checklist selector initialized');
+            container.innerHTML = `
+                <!-- Número de Vuelo -->
+                <div class="bg-blue-50 rounded-lg p-3 border border-blue-100">
+                    <div class="flex items-center gap-2 mb-1">
+                        <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                        </svg>
+                        <span class="text-xs text-blue-600 font-semibold uppercase">Vuelo</span>
+                    </div>
+                    <p class="text-blue-900 font-bold text-lg">${flight.flightNumber}</p>
+                </div>
+
+                <!-- Ruta -->
+                <div class="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                    <div class="flex items-center gap-2 mb-1">
+                        <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        <span class="text-xs text-gray-600 font-semibold uppercase">Ruta</span>
+                    </div>
+                    <p class="text-gray-900 font-bold text-base">${flight.route}</p>
+                    <p class="text-gray-500 text-xs mt-1">${flight.origin} → ${flight.destination}</p>
+                </div>
+
+                <!-- Horario -->
+                <div class="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                    <div class="flex items-center gap-2 mb-1">
+                        <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <span class="text-xs text-gray-600 font-semibold uppercase">Salida</span>
+                    </div>
+                    <p class="text-gray-900 font-bold text-base tabular-nums">${flight.departureTime}</p>
+                    <p class="text-gray-500 text-xs mt-1">${flight.date}</p>
+                </div>
+
+                <!-- Aeronave -->
+                <div class="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                    <div class="flex items-center gap-2 mb-1">
+                        <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        <span class="text-xs text-gray-600 font-semibold uppercase">Aeronave</span>
+                    </div>
+                    <p class="text-gray-900 font-semibold text-sm">${flight.aircraft}</p>
+                    <p class="text-gray-500 text-xs mt-1">${flight.passengers} pasajeros • ${flight.class}</p>
+                </div>
+            `;
         }
 
         // Initialize WebSocket
@@ -495,16 +625,14 @@
                     reconnectionDelay: 1000,
                     reconnectionAttempts: 5,
                 });
-                
-                console.log('🔌 Socket created, waiting for connection...');
 
                 socket.on('connect', () => {
                     console.log('✅ Dashboard WebSocket connected');
                     console.log('🆔 Socket ID:', socket.id);
                     
-                    // Unirse al room del trolley por defecto para recibir eventos
-                    socket.emit('join_trolley_room', { trolleyId: 1 });
-                    console.log('🏠 Joined trolley room 1');
+                    const trolleyId = document.getElementById('trolley-selector').value;
+                    socket.emit('join_trolley_room', { trolleyId: parseInt(trolleyId) });
+                    console.log('🏠 Joined trolley room', trolleyId);
                     
                     updateConnectionStatus(true);
                 });
@@ -515,27 +643,24 @@
                 });
 
                 socket.on('product_detected', (event) => {
-                    console.log('🎯 REAL Product detected from camera:', event);
+                    console.log('🎯 Product detected:', event.product_name);
                     console.log('📝 Event details:', {
-                        product_name: event.product_name,
                         product_id: event.product_id,
                         category: event.category,
                         confidence: event.confidence,
                         scan_type: event.scan_type
                     });
-                    console.log('🔍 Processing event for checklist system...');
                     handleProductDetected(event);
                     handleChecklistProductDetected(event);
-                    handleSalesTracking(event); // NUEVO: Tracking de ventas
+                    handleSalesTracking(event);
                 });
 
-                // Debug: Escuchar TODOS los eventos para ver qué está llegando
                 socket.onAny((eventName, ...args) => {
                     console.log('📡 Dashboard received event:', eventName, args);
                 });
 
                 socket.on('connect_error', (error) => {
-                    console.warn('⚠️ WebSocket connection error:', error.message);
+                    console.warn('⚠️ WebSocket error:', error.message);
                     updateConnectionStatus(false);
                 });
 
@@ -545,116 +670,49 @@
             }
         }
 
-        // Update connection status
-        function updateConnectionStatus(connected) {
-            isConnected = connected;
-            const statusDot = document.getElementById('status-dot');
-            const statusText = document.getElementById('status-text');
+        // Initialize checklist selector
+        function initChecklistSelector() {
+            const selector = document.getElementById('checklist-selector');
+            if (!selector) return;
             
-            if (connected) {
-                statusDot.className = 'w-3 h-3 bg-green-500 rounded-full';
-                statusText.textContent = 'Conectado';
-            } else {
-                statusDot.className = 'w-3 h-3 bg-red-500 rounded-full';
-                statusText.textContent = 'Desconectado';
-            }
-        }
-
-        // Handle product detection
-        function handleProductDetected(event) {
-            const productId = event.product_id;
-            const productName = event.product_name;
-            const confidence = event.confidence;
-            const detectedAt = new Date(event.detected_at).toLocaleTimeString();
-
-            // Store product detection
-            productsDetected.set(productId, {
-                name: productName,
-                confidence: confidence,
-                detectedAt: detectedAt,
-                count: (productsDetected.get(productId)?.count || 0) + 1
-            });
-
-            // Update UI
-            updateMetrics();
-        }
-
-        // Update product list - REMOVED: This function was causing errors because product-list element doesn't exist
-        // The checklist system now handles product display
-
-        // Handle sales tracking
-        function handleSalesTracking(event) {
-            const scanType = event.scan_type || 'load'; // Por defecto es load
-            const productId = event.product_id;
-            
-            if (scanType === 'load') {
-                console.log('📦 [LOAD] Producto cargado:', event.product_name);
-                loadedProducts.add(productId);
-            } else if (scanType === 'return') {
-                console.log('🔄 [RETURN] Producto retornado:', event.product_name);
-                returnedProducts.add(productId);
-            }
-            
-            updateSalesMetrics();
-        }
-        
-        // Update sales metrics
-        function updateSalesMetrics() {
-            const loadedCount = loadedProducts.size;
-            const returnedCount = returnedProducts.size;
-            const soldCount = loadedCount - returnedCount;
-            
-            console.log('💰 Sales Metrics Updated:', {
-                loaded: loadedCount,
-                returned: returnedCount,
-                sold: soldCount
-            });
-            
-            document.getElementById('loaded-count').textContent = loadedCount;
-            document.getElementById('returned-count').textContent = returnedCount;
-            document.getElementById('sold-count').textContent = soldCount;
-        }
-        
-        // Fetch sales summary from API
-        async function fetchSalesSummary(scanId) {
-            try {
-                console.log('📊 Fetching sales summary for scan:', scanId);
-                const response = await fetch(`http://localhost:3001/api/scans/${scanId}/sales-summary`);
+            selector.addEventListener('change', (e) => {
+                const templateId = e.target.value;
+                console.log('📋 Checklist selected:', templateId);
                 
-                if (!response.ok) {
-                    console.error('❌ Failed to fetch sales summary:', response.status);
-                    return;
+                if (templateId) {
+                    loadChecklist(templateId);
+            } else {
+                    activeChecklist = null;
+                    checklistItems.clear();
+                    renderChecklist();
+                }
+            });
+            
+            console.log('✅ Checklist selector initialized');
+        }
+
+        // Trolley selector change
+        function initTrolleySelector() {
+            const selector = document.getElementById('trolley-selector');
+            if (!selector) return;
+            
+            selector.addEventListener('change', (e) => {
+                const trolleyId = e.target.value;
+                console.log('🔄 Switching to trolley:', trolleyId);
+                
+                productsDetected.clear();
+                loadedProducts.clear();
+                returnedProducts.clear();
+                
+                if (socket && socket.connected) {
+                    socket.emit('join_trolley_room', { trolleyId: parseInt(trolleyId) });
+                    console.log('🏠 Joined trolley room', trolleyId);
                 }
                 
-                const data = await response.json();
-                console.log('✅ Sales summary received:', data);
-                
-                // Update metrics with real data from backend
-                document.getElementById('loaded-count').textContent = data.stats.loaded_count;
-                document.getElementById('returned-count').textContent = data.stats.returned_count;
-                document.getElementById('sold-count').textContent = data.stats.sold_count;
-                
-                // Update local state
-                loadedProducts = new Set(data.loaded_products.map(p => p.product_id));
-                returnedProducts = new Set(data.returned_products.map(p => p.product_id));
-                
-                console.log('💰 Sales metrics updated from backend');
-            } catch (error) {
-                console.error('❌ Error fetching sales summary:', error);
-            }
-        }
-
-        // Update metrics
-        function updateMetrics() {
-            const productsCount = productsDetected.size;
-            const avgConfidence = productsDetected.size > 0 
-                ? Array.from(productsDetected.values()).reduce((sum, p) => sum + p.confidence, 0) / productsDetected.size
-                : 0;
-            const activeTime = Math.floor((Date.now() - startTime) / 1000);
-
-            document.getElementById('products-count').textContent = productsCount;
-            document.getElementById('avg-confidence').textContent = Math.round(avgConfidence * 100) + '%';
-            document.getElementById('active-time').textContent = activeTime + 's';
+                updateKPIs();
+                updateFlightInfo();
+                updateSalesMetrics();
+            });
         }
 
         // Initialize dashboard
@@ -662,14 +720,20 @@
             console.log('🚀 Initializing Smart Trolley Dashboard');
             initWebSocket();
             initChecklistSelector();
-            updateMetrics();
+            initTrolleySelector();
+            updateKPIs();
+            updateSalesMetrics();
+            updateFlightInfo();
             
-            // Update metrics every second
-            setInterval(updateMetrics, 1000);
+            // Update clock every second
+            setInterval(updateClock, 1000);
+            
+            // Update KPIs every second
+            setInterval(updateKPIs, 1000);
         }
 
-        // Start dashboard when page loads
-        document.addEventListener('DOMContentLoaded', initDashboard);
+        // Start on load
+        window.addEventListener('DOMContentLoaded', initDashboard);
     </script>
   </body>
 </html>
