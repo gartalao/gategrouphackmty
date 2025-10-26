@@ -363,7 +363,22 @@ function initializeVideoStream(io) {
               });
 
               // Emit con indicador de return scan
-              wsNamespace.to(`trolley_${trolleyId}`).emit('product_detected', {
+              if (trolleyId) {
+                wsNamespace.to(`trolley_${trolleyId}`).emit('product_detected', {
+                  event: 'product_detected',
+                  scan_type: 'return',
+                  trolley_id: trolleyId,
+                  product_id: product.productId,
+                  product_name: product.name,
+                  detected_at: detection.detectedAt,
+                  operator_id: scan.operatorId,
+                  confidence: confidence,
+                  box_2d: box,
+                });
+              }
+              
+              // También emitir al socket directamente
+              socket.emit('product_detected', {
                 event: 'product_detected',
                 scan_type: 'return',
                 trolley_id: trolleyId,
@@ -394,8 +409,23 @@ function initializeVideoStream(io) {
                 },
               });
 
-              // Emit to trolley room
-              wsNamespace.to(`trolley_${trolleyId}`).emit('product_detected', {
+              // Emit to trolley room si hay trolleyId
+              if (trolleyId) {
+                wsNamespace.to(`trolley_${trolleyId}`).emit('product_detected', {
+                  event: 'product_detected',
+                  scan_type: 'load',
+                  trolley_id: trolleyId,
+                  product_id: product.productId,
+                  product_name: product.name,
+                  detected_at: detection.detectedAt,
+                  operator_id: scan.operatorId,
+                  confidence: confidence,
+                  box_2d: box,
+                });
+              }
+              
+              // También emitir al socket directamente
+              socket.emit('product_detected', {
                 event: 'product_detected',
                 scan_type: 'load',
                 trolley_id: trolleyId,
@@ -478,17 +508,49 @@ function initializeVideoStream(io) {
         }
 
         // Crear return scan
+        // Verificar que trolleyId existe en DB antes de usarlo
+        const trolleyIdToUse = trolleyId || originalScan.trolleyId;
+        const operatorIdToUse = operatorId || originalScan.operatorId;
+        
+        let validTrolleyId = null;
+        if (trolleyIdToUse) {
+          const trolleyExists = await prisma.trolley.findUnique({
+            where: { trolleyId: trolleyIdToUse },
+          });
+          if (trolleyExists) {
+            validTrolleyId = trolleyIdToUse;
+          } else {
+            console.warn(`[WS] ⚠️ Trolley ${trolleyIdToUse} no existe, creando return scan sin trolleyId`);
+          }
+        }
+        
+        let validOperatorId = null;
+        if (operatorIdToUse) {
+          const operatorExists = await prisma.user.findUnique({
+            where: { userId: operatorIdToUse },
+          });
+          if (operatorExists) {
+            validOperatorId = operatorIdToUse;
+          } else {
+            console.warn(`[WS] ⚠️ Operator ${operatorIdToUse} no existe, creando return scan sin operatorId`);
+          }
+        }
+        
         const returnScan = await prisma.returnScan.create({
           data: {
             scanId,
-            trolleyId: trolleyId || originalScan.trolleyId,
-            operatorId: operatorId || originalScan.operatorId,
+            ...(validTrolleyId && { trolleyId: validTrolleyId }),
+            ...(validOperatorId && { operatorId: validOperatorId }),
             status: 'recording',
             startedAt: new Date(),
           },
         });
 
-        socket.join(`trolley_${trolleyId || originalScan.trolleyId}`);
+        // Join trolley room si hay trolleyId válido
+        const finalTrolleyId = trolleyId || originalScan.trolleyId;
+        if (finalTrolleyId) {
+          socket.join(`trolley_${finalTrolleyId}`);
+        }
 
         console.log(`[WS] ✅ Return Scan ${returnScan.returnScanId} started for original scan ${scanId}`);
 

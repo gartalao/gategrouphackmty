@@ -37,6 +37,8 @@ export const LiveRecording: React.FC<LiveRecordingProps> = ({
   // Estados para sistema de ventas
   const [scanType, setScanType] = useState<'load' | 'return'>('load');
   const [originalScanId, setOriginalScanId] = useState<number | null>(null);
+  const [loadedProductsMap, setLoadedProductsMap] = useState<Map<number, string>>(new Map()); // ID -> nombre
+  const [returnedProducts, setReturnedProducts] = useState<Set<number>>(new Set()); // IDs de productos retornados
 
   // Referencias a servicios
   const geminiServiceRef = useRef<GeminiLiveService | null>(null);
@@ -44,6 +46,7 @@ export const LiveRecording: React.FC<LiveRecordingProps> = ({
   const scanIdRef = useRef<number | null>(null);
   const frameCounterRef = useRef(0);
   const isRecordingRef = useRef(false); // Ref inmediata para evitar delays de React state
+  const scanTypeRef = useRef<'load' | 'return'>('load'); // Ref inmediata para tipo de scan
   const detectedProductIdsRef = useRef<Set<number>>(new Set()); // Productos ya detectados en esta sesión
 
   // Configuración
@@ -149,7 +152,7 @@ export const LiveRecording: React.FC<LiveRecordingProps> = ({
     }
   };
 
-  const handleProductDetected = (event: ProductDetectedEvent) => {
+  const handleProductDetected = (event: ProductDetectedEvent & { scan_type?: string }) => {
     // Verificar si ya fue detectado en esta sesión (deduplicación frontend)
     if (detectedProductIdsRef.current.has(event.product_id)) {
       console.log(`[LiveRecording] ⏭️ ${event.product_name} ya fue detectado en frontend - Ignorando duplicado`);
@@ -159,18 +162,80 @@ export const LiveRecording: React.FC<LiveRecordingProps> = ({
     // Marcar como detectado
     detectedProductIdsRef.current.add(event.product_id);
 
-    const newDetection: Detection = {
-      id: `${event.product_id}_${Date.now()}`,
-      product_name: event.product_name,
-      detected_at: event.detected_at,
-      confidence: event.confidence,
-      product_id: event.product_id,
-    };
+    const scanTypeFromEvent = event.scan_type || scanType;
 
-    setDetections((prev) => [newDetection, ...prev].slice(0, 20)); // Keep last 20
+    // Manejar según tipo de scan
+    if (scanTypeFromEvent === 'load') {
+      // SCAN DE CARGA: Mostrar productos cargados
+      setLoadedProductsMap((prev) => new Map(prev).set(event.product_id, event.product_name));
+
+      const newDetection: Detection = {
+        id: `${event.product_id}_${Date.now()}`,
+        product_name: `📦 ${event.product_name}`,
+        detected_at: event.detected_at,
+        confidence: event.confidence,
+        product_id: event.product_id,
+      };
+
+      setDetections((prev) => [newDetection, ...prev].slice(0, 20));
+      console.log(`[LiveRecording] ✅ [CARGA] Producto agregado: ${event.product_name}`);
+    } else {
+      // SCAN DE RETORNO: Producto retornado (agregar a lista)
+      setReturnedProducts((prev) => new Set([...prev, event.product_id]));
+      
+      const newDetection: Detection = {
+        id: `${event.product_id}_${Date.now()}`,
+        product_name: `🔄 ${event.product_name} (Retornado)`,
+        detected_at: event.detected_at,
+        confidence: event.confidence,
+        product_id: event.product_id,
+      };
+
+      setDetections((prev) => [newDetection, ...prev].slice(0, 20));
+      console.log(`[LiveRecording] 🔄 [RETORNO] Producto retornado: ${event.product_name}`);
+      
+      // CALCULAR Y MOSTRAR PRODUCTOS VENDIDOS inmediatamente
+      setTimeout(() => {
+        calculateAndShowSoldProducts();
+      }, 100);
+    }
+
     setGeminiStatus('success');
-    
-    console.log(`[LiveRecording] ✅ Producto detectado: ${event.product_name} (${Math.round(event.confidence * 100)}%)`);
+  };
+
+  // Calcular productos vendidos en tiempo real
+  const calculateAndShowSoldProducts = () => {
+    const loadedIds = Array.from(loadedProductsMap.keys());
+    const soldProductIds = loadedIds.filter((id) => !returnedProducts.has(id));
+
+    console.log(`[LiveRecording] 💰 Calculando vendidos...`);
+    console.log(`[LiveRecording]    Cargados: ${loadedIds.length}`);
+    console.log(`[LiveRecording]    Retornados: ${returnedProducts.size}`);
+    console.log(`[LiveRecording]    Vendidos: ${soldProductIds.length}`);
+
+    // Agregar detecciones de productos vendidos
+    soldProductIds.forEach((productId) => {
+      // Solo agregar si no está ya en detections como vendido
+      const alreadyShownAsSold = detections.some(
+        (d) => d.product_id === productId && d.product_name.includes('VENDIDO')
+      );
+
+      if (!alreadyShownAsSold) {
+        const productName = loadedProductsMap.get(productId) || `Producto ID ${productId}`;
+        
+        const soldDetection: Detection = {
+          id: `sold_${productId}_${Date.now()}_${Math.random()}`,
+          product_name: `✅ ${productName} (VENDIDO)`,
+          detected_at: new Date().toISOString(),
+          confidence: 1.0,
+          product_id: productId,
+        };
+
+        setDetections((prev) => [soldDetection, ...prev]);
+      }
+    });
+
+    console.log(`[LiveRecording] 💰 Productos vendidos mostrados en UI`);
   };
 
   const handleFrameCapture = async (imageData: string) => {
@@ -217,8 +282,10 @@ export const LiveRecording: React.FC<LiveRecordingProps> = ({
             frameId,
             jpegBase64: base64Data,
             ts: Date.now(),
-            scanType, // Agregar tipo de scan (load o return)
+            scanType: scanTypeRef.current, // Usar REF para evitar delay
           });
+
+          console.log(`[LiveRecording] 📤 Frame enviado con scanType: ${scanTypeRef.current}`);
 
           console.log(`[LiveRecording] 📡 Frame ${frameCounterRef.current} ENVIADO al backend vía WebSocket`);
           setGeminiStatus('idle');
@@ -247,21 +314,52 @@ export const LiveRecording: React.FC<LiveRecordingProps> = ({
         return;
       }
       
-      // PRIMERO: Limpiar productos detectados de sesión anterior
+      // PRIMERO: Si es return scan, cargar productos del scan original
+      if (type === 'return' && originalScanId) {
+        console.log('[LiveRecording] 📥 Cargando productos del scan original...');
+        try {
+          const response = await fetch(`http://localhost:3001/api/scans/${originalScanId}/summary`);
+          const data = await response.json();
+          
+          // Crear Map de productos cargados (ID -> nombre)
+          const productsMap = new Map<number, string>();
+          data.products.forEach((p: any) => {
+            productsMap.set(p.product_id, p.product_name);
+          });
+          
+          setLoadedProductsMap(productsMap);
+          
+          console.log(`[LiveRecording] ✅ ${productsMap.size} productos únicos cargados del scan original`);
+          console.log('[LiveRecording] 📋 Productos:', Array.from(productsMap.values()));
+        } catch (err) {
+          console.error('[LiveRecording] ⚠️ Error cargando scan original:', err);
+        }
+      }
+      
+      // SEGUNDO: Limpiar productos detectados de sesión anterior
       detectedProductIdsRef.current.clear();
       setDetections([]); // Limpiar UI
+      setReturnedProducts(new Set()); // Limpiar retornados
+      
+      // Si es load scan, también limpiar loaded products
+      if (type === 'load') {
+        setLoadedProductsMap(new Map());
+      }
+      
       console.log('[LiveRecording] 🧹 Productos detectados limpiados para nueva sesión');
       
-      // SEGUNDO: Establecer tipo de scan
+      // TERCERO: Establecer tipo de scan (STATE + REF)
       setScanType(type);
+      scanTypeRef.current = type; // ← ACTUALIZACIÓN INMEDIATA
+      console.log(`[LiveRecording] ✅ scanType actualizado: ${type}`);
       
-      // TERCERO: Establecer estado de grabación (ref + state)
+      // CUARTO: Establecer estado de grabación (ref + state)
       isRecordingRef.current = true; // Actualización INMEDIATA con ref
       setIsRecording(true);
       setIsPaused(false);
       console.log('[LiveRecording] ✅ Estado actualizado: isRecordingRef=true, isRecording=true');
       
-      // CUARTO: Crear nueva sesión según tipo
+      // QUINTO: Crear nueva sesión según tipo
       console.log('[LiveRecording] 🔌 Creando nueva sesión...');
       await initializeSession(type);
       
@@ -291,6 +389,11 @@ export const LiveRecording: React.FC<LiveRecordingProps> = ({
       if (scanType === 'return') {
         await wsServiceRef.current.endReturnScan({ returnScanId: scanId });
         console.log('[LiveRecording] ✅ Return scan finalizado');
+        
+        // MOSTRAR RESUMEN DE VENTAS AL FINALIZAR
+        setTimeout(() => {
+          showSalesSummary();
+        }, 500);
       } else {
         await wsServiceRef.current.endScan({ scanId });
         console.log('[LiveRecording] ✅ Load scan finalizado');
@@ -298,8 +401,8 @@ export const LiveRecording: React.FC<LiveRecordingProps> = ({
 
       // Mensaje de confirmación según tipo
       const message = scanType === 'load'
-        ? '¿Escaneo de carga finalizado! ¿Deseas salir?'
-        : '¿Escaneo de retorno finalizado! ¿Deseas salir?';
+        ? 'Escaneo de carga finalizado! ¿Deseas salir?'
+        : 'Escaneo de retorno finalizado! Ve el análisis de ventas en "Productos Detectados". ¿Deseas salir?';
 
       const confirmed = window.confirm(message);
 
@@ -310,6 +413,55 @@ export const LiveRecording: React.FC<LiveRecordingProps> = ({
       console.error('[LiveRecording] Error ending session:', error);
       setError(`Error al finalizar: ${error instanceof Error ? error.message : 'Error desconocido'}`);
     }
+  };
+
+  // Mostrar resumen de ventas al finalizar return scan
+  const showSalesSummary = () => {
+    console.log('[LiveRecording] 📊 Generando resumen de ventas...');
+    
+    // Limpiar detecciones actuales
+    setDetections([]);
+    
+    const loadedIds = Array.from(loadedProductsMap.keys());
+    const returnedIds = Array.from(returnedProducts);
+    const soldIds = loadedIds.filter((id) => !returnedProducts.has(id));
+    
+    console.log(`[LiveRecording] 📊 Resumen:`);
+    console.log(`[LiveRecording]    Cargados: ${loadedIds.length} productos`);
+    console.log(`[LiveRecording]    Retornados: ${returnedIds.length} productos`);
+    console.log(`[LiveRecording]    VENDIDOS: ${soldIds.length} productos`);
+    
+    // Agregar productos vendidos a la UI
+    soldIds.forEach((productId) => {
+      const productName = loadedProductsMap.get(productId) || `Producto ID ${productId}`;
+      
+      const soldDetection: Detection = {
+        id: `sold_${productId}_${Date.now()}`,
+        product_name: `✅ ${productName} (VENDIDO)`,
+        detected_at: new Date().toISOString(),
+        confidence: 1.0,
+        product_id: productId,
+      };
+      
+      setDetections((prev) => [...prev, soldDetection]);
+    });
+    
+    // Agregar productos retornados a la UI
+    returnedIds.forEach((productId) => {
+      const productName = loadedProductsMap.get(productId) || `Producto ID ${productId}`;
+      
+      const returnedDetection: Detection = {
+        id: `returned_${productId}_${Date.now()}`,
+        product_name: `🔄 ${productName} (Retornado)`,
+        detected_at: new Date().toISOString(),
+        confidence: 0.5,
+        product_id: productId,
+      };
+      
+      setDetections((prev) => [...prev, returnedDetection]);
+    });
+    
+    console.log('[LiveRecording] ✅ Resumen de ventas mostrado en UI');
   };
 
   const cleanup = async () => {
@@ -334,6 +486,7 @@ export const LiveRecording: React.FC<LiveRecordingProps> = ({
     // Limpiar referencias
     scanIdRef.current = null;
     isRecordingRef.current = false;
+    scanTypeRef.current = 'load'; // Reset a load por defecto
     detectedProductIdsRef.current.clear();
     
     console.log('[LiveRecording] ✅ Cleanup completado');

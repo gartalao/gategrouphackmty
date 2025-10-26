@@ -4,7 +4,21 @@
 
 [33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
 
-  VITE v5.4.21  ready in 138 ms
+  VITE v5.4.21  ready in 103 ms
 
   ➜  Local:   http://localhost:3002/
   ➜  Network: http://10.22.212.212:3002/
+2:04:52 AM [vite] hmr update /src/pages/LiveRecording.tsx, /src/index.css
+2:05:19 AM [vite] hmr update /src/pages/LiveRecording.tsx, /src/index.css
+2:05:45 AM [vite] hmr update /src/pages/LiveRecording.tsx, /src/index.css
+2:05:57 AM [vite] hmr update /src/pages/LiveRecording.tsx, /src/index.css
+2:06:26 AM [vite] hmr update /src/pages/LiveRecording.tsx, /src/index.css
+2:06:40 AM [vite] hmr update /src/pages/LiveRecording.tsx, /src/index.css
+2:07:05 AM [vite] hmr update /src/pages/LiveRecording.tsx, /src/index.css
+2:07:18 AM [vite] hmr update /src/pages/LiveRecording.tsx, /src/index.css
+2:08:42 AM [vite] hmr update /src/pages/LiveRecording.tsx, /src/index.css
+2:13:32 AM [vite] hmr update /src/pages/LiveRecording.tsx, /src/index.css
+2:13:42 AM [vite] hmr update /src/pages/LiveRecording.tsx, /src/index.css
+2:13:52 AM [vite] hmr update /src/pages/LiveRecording.tsx, /src/index.css
+2:14:01 AM [vite] hmr update /src/pages/LiveRecording.tsx, /src/index.css
+2:14:32 AM [vite] hmr update /src/pages/LiveRecording.tsx, /src/index.css
