@@ -62,6 +62,15 @@ export const LiveRecording: React.FC<LiveRecordingProps> = ({
     try {
       console.log('[LiveRecording] 🚀 Iniciando sesión...');
       console.log('[LiveRecording] 📡 URL WebSocket:', WS_URL);
+      
+      // Limpiar sesión anterior si existe
+      if (wsServiceRef.current) {
+        console.log('[LiveRecording] 🧹 Limpiando sesión anterior...');
+        wsServiceRef.current.disconnect();
+        wsServiceRef.current = null;
+        scanIdRef.current = null;
+      }
+      
       console.log('[LiveRecording] 🏭 Creando servicio WebSocket...');
       
       // Conectar a WebSocket del backend (server-side processing)
@@ -200,11 +209,9 @@ export const LiveRecording: React.FC<LiveRecordingProps> = ({
       setIsPaused(false);
       console.log('[LiveRecording] ✅ Estado actualizado: isRecordingRef=true, isRecording=true');
       
-      // SEGUNDO: Iniciar WebSocket + Sesión si no existe
-      if (!wsServiceRef.current || !scanIdRef.current) {
-        console.log('[LiveRecording] 🔌 Iniciando conexión WebSocket...');
-        await initializeSession();
-      }
+      // SEGUNDO: SIEMPRE crear nueva sesión para evitar scans ended
+      console.log('[LiveRecording] 🔌 Creando nueva sesión...');
+      await initializeSession();
       
       console.log('[LiveRecording] ▶ Streaming AUTOMÁTICO iniciado - Gemini analizará cada frame');
     } catch (error) {
@@ -248,10 +255,30 @@ export const LiveRecording: React.FC<LiveRecordingProps> = ({
     }
   };
 
-  const cleanup = () => {
+  const cleanup = async () => {
+    console.log('[LiveRecording] 🧹 Cleanup iniciado...');
+    
+    // Finalizar scan si existe
+    if (wsServiceRef.current && scanIdRef.current) {
+      try {
+        console.log('[LiveRecording] 🛑 Finalizando scan:', scanIdRef.current);
+        await wsServiceRef.current.endScan({ scanId: scanIdRef.current });
+      } catch (error) {
+        console.warn('[LiveRecording] ⚠️ Error finalizando scan:', error);
+      }
+    }
+    
+    // Desconectar WebSocket
     if (wsServiceRef.current) {
       wsServiceRef.current.disconnect();
+      wsServiceRef.current = null;
     }
+    
+    // Limpiar referencias
+    scanIdRef.current = null;
+    isRecordingRef.current = false;
+    
+    console.log('[LiveRecording] ✅ Cleanup completado');
   };
 
   if (error) {

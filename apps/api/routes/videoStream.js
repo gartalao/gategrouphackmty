@@ -11,10 +11,14 @@ const PRODUCT_COOLDOWN_MS = parseInt(process.env.PRODUCT_COOLDOWN_MS || '1200', 
 // Cooldown tracking: { scanId_productId: lastDetectedTimestamp }
 const detectionCooldowns = new Map();
 
-// Rate limit tracking for Gemini API (10 RPM limit)
+// Rate limit tracking for Gemini API (Premium: 120 RPM limit = 2 RPS)
 const geminiRequestTimestamps = [];
-const GEMINI_RPM_LIMIT = 10;
+const GEMINI_RPM_LIMIT = 120; // Premium plan: 120 requests por minuto
 const GEMINI_WINDOW_MS = 60000; // 1 minuto
+
+// Tracking de productos actualmente visibles en cada scan
+// scanId -> Set([productId1, productId2, ...])
+const currentlyVisibleProducts = new Map();
 
 /**
  * Verify JWT token from handshake
@@ -75,6 +79,65 @@ function canMakeGeminiRequest() {
  */
 function trackGeminiRequest() {
   geminiRequestTimestamps.push(Date.now());
+}
+
+/**
+ * Verifica si un producto es NUEVO en el frame actual
+ * (no estaba visible en el frame anterior)
+ */
+function isNewProduct(scanId, productId) {
+  const visibleSet = currentlyVisibleProducts.get(scanId);
+  if (!visibleSet) {
+    return true; // Primera detección en este scan
+  }
+  return !visibleSet.has(productId); // Nuevo si no estaba antes
+}
+
+/**
+ * Marca producto como actualmente visible
+ */
+function markProductAsVisible(scanId, productId) {
+  let visibleSet = currentlyVisibleProducts.get(scanId);
+  if (!visibleSet) {
+    visibleSet = new Set();
+    currentlyVisibleProducts.set(scanId, visibleSet);
+  }
+  visibleSet.add(productId);
+}
+
+/**
+ * Actualiza productos visibles basado en detección actual
+ * Remueve los que ya no están presentes
+ */
+function updateVisibleProducts(scanId, detectedProductIds) {
+  const visibleSet = currentlyVisibleProducts.get(scanId) || new Set();
+  
+  // Remover productos que ya no se detectan
+  const removedProducts = [];
+  for (const productId of visibleSet) {
+    if (!detectedProductIds.includes(productId)) {
+      removedProducts.push(productId);
+    }
+  }
+  
+  removedProducts.forEach(pid => visibleSet.delete(pid));
+  
+  if (removedProducts.length > 0) {
+    console.log(`[WS] 🗑️ Productos removidos del frame:`, removedProducts.length);
+  }
+  
+  // Agregar nuevos productos detectados
+  detectedProductIds.forEach(pid => visibleSet.add(pid));
+  
+  currentlyVisibleProducts.set(scanId, visibleSet);
+}
+
+/**
+ * Limpia tracking de productos visibles al finalizar scan
+ */
+function cleanupVisibleProducts(scanId) {
+  currentlyVisibleProducts.delete(scanId);
+  console.log(`[WS] 🧹 Tracking de productos visibles limpiado para scan ${scanId}`);
 }
 
 /**
@@ -226,7 +289,11 @@ function initializeVideoStream(io) {
         
         console.log('[WS] 📦 Productos en catálogo:', products.length);
 
-        // Check rate limit before calling Gemini
+        // Con Premium (120 RPM) el rate limit check es menos restrictivo
+        // Verificamos solo para evitar excesos extremos
+        const requestsInLastMinute = geminiRequestTimestamps.filter(ts => Date.now() - ts < GEMINI_WINDOW_MS).length;
+        console.log(`[WS] 📊 Rate actual: ${requestsInLastMinute}/${GEMINI_RPM_LIMIT} RPM`);
+
         if (!canMakeGeminiRequest()) {
           console.warn('[WS] ⏸️ Frame descartado por rate limit de Gemini');
           return;
@@ -247,59 +314,83 @@ function initializeVideoStream(io) {
           console.log('[WS] ⚪ No se detectó producto o confianza baja');
           return;
         }
-        
-        console.log('[WS] 🎯 Producto detectado:', result.product_name, 'Confianza:', result.confidence);
 
-        // Find matching product by name (exact match, case-insensitive)
-        const product = products.find(
-          (p) => p.name.toLowerCase() === result.product_name.toLowerCase()
-        );
+        // Procesar MÚLTIPLES productos si all_items existe
+        const itemsToProcess = result.all_items || [{name: result.product_name, confidence: result.confidence}];
+        console.log('[WS] 📦 Items detectados en frame actual:', itemsToProcess.length);
 
-        if (!product) {
-          console.warn(`[WS] Product not found in catalog: ${result.product_name}`);
-          console.log('[WS] Available products:', products.map(p => p.name).join(', '));
-          return;
+        // Identificar productIds detectados en este frame
+        const detectedProductIds = [];
+        const newProductsToInsert = [];
+
+        // Mapear nombres a productos del catálogo
+        for (const item of itemsToProcess) {
+          const productName = item.name || result.product_name;
+          const product = products.find(
+            (p) => p.name.toLowerCase() === productName.toLowerCase()
+          );
+          
+          if (product) {
+            detectedProductIds.push(product.productId);
+            
+            // Verificar si es NUEVO (no estaba visible antes)
+            if (isNewProduct(scanId, product.productId)) {
+              newProductsToInsert.push({
+                product,
+                confidence: item.confidence || result.confidence || 0.9,
+                box: item.box || result.box_2d || null,
+              });
+            } else {
+              console.log(`[WS] ♻️ ${product.name} ya está visible - NO se registra de nuevo`);
+            }
+          } else {
+            console.warn(`[WS] ⚠️ Product not found in catalog: ${productName}`);
+          }
         }
 
-        // Check cooldown
-        if (isInCooldown(scanId, product.productId)) {
-          console.log(`[WS] Product ${product.name} in cooldown, skipping`);
-          return;
+        console.log(`[WS] 🆕 Productos NUEVOS a registrar: ${newProductsToInsert.length}/${itemsToProcess.length}`);
+
+        // Actualizar tracking: marcar productos actualmente detectados
+        // Los que desaparecieron se remueven automáticamente
+        updateVisibleProducts(scanId, detectedProductIds);
+
+        // Insertar SOLO productos NUEVOS en la base de datos
+        for (const {product, confidence, box} of newProductsToInsert) {
+          try {
+            // Insert detection
+            const detection = await prisma.productDetection.create({
+              data: {
+                scanId,
+                productId: product.productId,
+                operatorId: scan.operatorId || undefined,
+                confidence: confidence,
+                videoFrameId: frameId,
+                detectedAt: new Date(),
+              },
+              include: {
+                product: true,
+              },
+            });
+
+            // Emit to trolley room
+            wsNamespace.to(`trolley_${scan.trolleyId}`).emit('product_detected', {
+              event: 'product_detected',
+              trolley_id: scan.trolleyId,
+              product_id: product.productId,
+              product_name: product.name,
+              detected_at: detection.detectedAt,
+              operator_id: scan.operatorId,
+              confidence: confidence,
+              box_2d: box,
+            });
+
+            console.log(
+              `[WS] ✅ Producto NUEVO registrado: ${product.name} (confidence: ${confidence.toFixed(2)})`
+            );
+          } catch (itemError) {
+            console.error('[WS] ❌ Error registrando producto:', itemError.message);
+          }
         }
-
-        // Insert detection
-        const detection = await prisma.productDetection.create({
-          data: {
-            scanId,
-            productId: product.productId,
-            operatorId: scan.operatorId || undefined,
-            confidence: result.confidence || 0,
-            videoFrameId: frameId,
-            detectedAt: new Date(),
-          },
-          include: {
-            product: true,
-          },
-        });
-
-        // Set cooldown
-        setCooldown(scanId, product.productId);
-
-        // Emit to trolley room
-        wsNamespace.to(`trolley_${scan.trolleyId}`).emit('product_detected', {
-          event: 'product_detected',
-          trolley_id: scan.trolleyId,
-          product_id: product.productId,
-          product_name: product.name,
-          detected_at: detection.detectedAt,
-          operator_id: scan.operatorId,
-          confidence: result.confidence,
-          box_2d: result.box_2d || null,
-        });
-
-        console.log(
-          `[WS] Product detected: ${product.name} (confidence: ${result.confidence?.toFixed(2) || 'N/A'})${result.box_2d ? ' with box' : ''}`
-        );
       } catch (error) {
         console.error('[WS] Error processing frame:', error);
       }
@@ -317,6 +408,9 @@ function initializeVideoStream(io) {
             status: 'completed',
           },
         });
+
+        // Limpiar tracking de productos visibles
+        cleanupVisibleProducts(scanId);
 
         console.log(`[WS] Scan ${scanId} ended`);
 

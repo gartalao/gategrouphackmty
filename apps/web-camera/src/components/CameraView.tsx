@@ -93,11 +93,10 @@ export const CameraView: React.FC<CameraViewProps> = ({
 
   const startCapture = () => {
     if (cameraServiceRef.current && isInitialized) {
-      // Captura optimizada para Rate Limit de Gemini (10 RPM = 1 cada 6 segundos)
-      // Usamos 7 segundos para tener margen de seguridad
-      cameraServiceRef.current.startCapture(7000); // ~8.5 frames/min (bajo el límite de 10 RPM)
+      // Streaming en tiempo real a 2 fps (500ms) con Gemini Premium
+      cameraServiceRef.current.startCapture(500); // 2 fps = 120 RPM (Premium plan)
       setIsCapturing(true);
-      console.log('[CameraView] 🎬 Streaming iniciado - 1 frame cada 7 segundos (Rate Limit optimizado)');
+      console.log('[CameraView] 🎬 Streaming iniciado a 2 fps - Tiempo Real con Gemini Premium');
     }
   };
 

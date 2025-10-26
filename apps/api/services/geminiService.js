@@ -10,57 +10,57 @@ console.log('[Gemini] Configurado con modelo:', GEMINI_MODEL);
 console.log('[Gemini] URL:', GEMINI_URL);
 
 /**
- * Construye el prompt para Gemini Robotics-ER 1.5
+ * Construye prompt ULTRA RÁPIDO para detección multi-objeto
+ * Detecta SOLO los que están visibles, búsqueda rápida por COLOR
  */
 function buildPrompt(catalog) {
+  // Lista compacta: nombre + palabras clave visuales
   const productList = catalog
-    .map((p, idx) => {
-      const keywords = p.detectionKeywords?.join(', ') || '';
-      return `${idx + 1}. ${p.name} — ${p.visualDescription || 'Sin descripción'} — keywords: ${keywords}`;
-    })
+    .map(p => `${p.name}: ${p.visualDescription}`)
     .join('\n');
 
-  return `Eres un sistema experto de visión computacional para detectar productos en trolleys de catering aéreo.
-
-PRODUCTOS DISPONIBLES:
+  return `Detecta SOLO productos que VES en la imagen. Catálogo:
 ${productList}
 
-TAREA: Detecta SI HAY algún producto visible en la imagen.
+Busca RÁPIDO por COLOR primero, luego TEXTO:
+- ROJO→Coca-Cola/Canelitas - VERDE→Sprite/Heineken - AZUL→Pepsi/Príncipe
+- NEGRO→Zero - GRIS→Light - AMARILLO→Sabritas/Schweppes - NARANJA→Doritos
+- MORADO→Takis/Valle Uva - ROSA→Electrolit - CELESTE→Ciel
 
-MÉTODO DE DETECCIÓN:
-1. Busca PRIMERO por características visuales distintivas:
-   - Coca-Cola 350ml: Lata ROJA con logo blanco
-   - Coca-Cola Zero 350ml: Lata NEGRA con logo plateado
-   - Sprite 350ml: Lata VERDE/TRANSPARENTE con logo verde-azul
-   - Pepsi 350ml: Lata AZUL con logo rojo/blanco
-   - Agua Natural 500ml: Botella TRANSPARENTE
-   - Lays Original 100gr: Bolsa AMARILLA brillante
-   - Lays Queso 100gr: Bolsa NARANJA
-   - Doritos Nacho 100gr: Bolsa ROJA/NARANJA con triángulos
+Responde JSON (sin markdown):
+{"items":[{"name":"Coca-Cola Regular Lata","confidence":0.95}],"action":"placing"}
 
-2. Busca texto en etiquetas: "Coca-Cola", "Sprite", "Pepsi", "Lays", "Doritos"
-3. Identifica la forma: lata cilíndrica, botella, bolsa de papas
-4. Si el producto está siendo colocado en el trolley, marca: "action": "placing_in_trolley"
+Si NO ves productos:
+{"items":[],"action":"none"}
 
-FORMATO DE RESPUESTA (SOLO JSON, SIN MARKDOWN):
-{"detected": true, "product_name": "Coca-Cola 350ml", "confidence": 0.95, "action": "placing_in_trolley", "box_2d": [ymin, xmin, ymax, xmax]}
-
-Si NO ves ningún producto:
-{"detected": false}
-
-IMPORTANTE: 
-- Usa el nombre EXACTO del producto de la lista
-- Solo detecta si estás seguro (confidence >= 0.70)
-- Responde SOLO con JSON, sin explicaciones`.trim();
+CRÍTICO: Solo incluye productos QUE VES con confidence>=0.70`.trim();
 }
 
 /**
- * Parseo robusto de JSON de la respuesta de Gemini
+ * Parseo robusto para respuestas multi-objeto
  */
 function safeParseDetection(text) {
   try {
-    // Intentar parseo directo primero
+    // Intentar parseo directo
     const direct = JSON.parse(text);
+    
+    // Formato multi-objeto nuevo
+    if (direct.items && Array.isArray(direct.items)) {
+      // Convertir a formato compatible
+      if (direct.items.length > 0) {
+        const firstItem = direct.items[0];
+        return {
+          detected: true,
+          product_name: firstItem.name,
+          confidence: firstItem.confidence || 0.9,
+          action: direct.action === 'placing' ? 'placing_in_trolley' : 'none',
+          all_items: direct.items, // Guardar todos los items detectados
+        };
+      }
+      return { detected: false };
+    }
+    
+    // Formato antiguo (single object)
     if (typeof direct === 'object' && 'detected' in direct) {
       return direct;
     }
@@ -68,7 +68,7 @@ function safeParseDetection(text) {
     // Continuar con regex
   }
 
-  // Extraer primer bloque JSON con regex
+  // Extraer JSON con regex
   const jsonMatch = text.match(/\{[\s\S]*?\}/);
   if (!jsonMatch) {
     console.warn('[Gemini] No JSON found in response:', text.substring(0, 200));
@@ -78,7 +78,19 @@ function safeParseDetection(text) {
   try {
     const parsed = JSON.parse(jsonMatch[0]);
     
-    // Validar campos requeridos
+    // Multi-objeto
+    if (parsed.items && Array.isArray(parsed.items) && parsed.items.length > 0) {
+      const firstItem = parsed.items[0];
+      return {
+        detected: true,
+        product_name: firstItem.name,
+        confidence: firstItem.confidence || 0.9,
+        action: parsed.action === 'placing' ? 'placing_in_trolley' : 'none',
+        all_items: parsed.items,
+      };
+    }
+    
+    // Single objeto
     if (typeof parsed.detected !== 'boolean') {
       return { detected: false };
     }
@@ -123,9 +135,12 @@ async function analyzeFrameReal(jpegBase64, catalog, opts) {
       },
     ],
     generationConfig: {
-      temperature: 0.2,
+      temperature: 0.1, // Más determinístico = más rápido
+      maxOutputTokens: 150, // Limitar respuesta para velocidad
+      topP: 0.8,
+      topK: 10,
       thinkingConfig: {
-        thinkingBudget: 0, // Latencia mínima
+        thinkingBudget: 0, // Sin thinking = máxima velocidad
       },
     },
   };
