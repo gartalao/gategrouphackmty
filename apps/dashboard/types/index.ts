@@ -3,6 +3,8 @@ export interface Product {
   product_name: string
   category: string
   count: number
+  confidence?: number
+  detected_at?: string
 }
 
 export interface ActiveScan {
@@ -20,6 +22,7 @@ export interface RealtimeData {
 
 export interface ProductDetectedEvent {
   event: "product_detected"
+  scan_type?: "load" | "return"
   trolley_id: number
   product_id: number
   product_name: string

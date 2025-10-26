@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { Package, CheckCircle, Target, Clock } from "lucide-react"
 import { KPICard } from "./KPICard"
 import { ProductChecklist } from "./ProductChecklist"
-import { SalesInventory } from "./SalesInventory"
+import { RealtimeSalesInventory } from "./RealtimeSalesInventory"
 import { useTrolleyData } from "@/hooks/useTrolleyData"
 import { useWebSocket } from "@/hooks/useWebSocket"
 import { calculateDuration } from "@/utils/formatters"
@@ -22,40 +22,44 @@ export default function Dashboard() {
 
   const handleProductDetected = (event: ProductDetectedEvent) => {
     if (event.trolley_id === selectedTrolley) {
-      console.log("[v0] Updating data for trolley", selectedTrolley)
+      console.log("[Dashboard] Product detected:", event.scan_type || 'load', event.product_name)
 
-      setRecentDetections((prev) => {
-        const newMap = new Map(prev)
-        newMap.set(event.product_id, {
-          confidence: event.confidence,
-          detectedAt: event.detected_at,
+      // Solo procesar eventos de load scan para el checklist principal
+      if (!event.scan_type || event.scan_type === 'load') {
+        setRecentDetections((prev) => {
+          const newMap = new Map(prev)
+          newMap.set(event.product_id, {
+            confidence: event.confidence,
+            detectedAt: event.detected_at,
+          })
+          return newMap
         })
-        return newMap
-      })
 
-      const detection: Detection = {
-        detection_id: Date.now(),
-        product: {
-          id: event.product_id,
-          name: event.product_name,
-          category: event.category || "Sin categoría",
-        },
-        detected_at: event.detected_at,
-        confidence: event.confidence,
-        scan: {
-          id: 0,
-          started_at: event.detected_at,
-          status: "recording",
-        },
-        operator: {
-          id: event.operator_id,
-          username: "operator",
-          full_name: "Operador",
-        },
+        const detection: Detection = {
+          detection_id: Date.now(),
+          product: {
+            id: event.product_id,
+            name: event.product_name,
+            category: event.category || "Sin categoría",
+          },
+          detected_at: event.detected_at,
+          confidence: event.confidence,
+          scan: {
+            id: 0,
+            started_at: event.detected_at,
+            status: "recording",
+          },
+          operator: {
+            id: event.operator_id,
+            username: "operator",
+            full_name: "Operador",
+          },
+        }
+
+        setLatestDetection(detection)
+        refetch()
       }
-
-      setLatestDetection(detection)
-      refetch()
+      // Los eventos de return scan se manejan automáticamente por useReturnedProducts
     }
   }
 
@@ -148,10 +152,9 @@ export default function Dashboard() {
               <ProductChecklist products={data?.products || []} recentDetections={recentDetections} />
             </div>
             <div className="flex flex-col gap-3 overflow-hidden">
-              <SalesInventory 
+              <RealtimeSalesInventory 
                 trolleyId={selectedTrolley} 
-                loadScanId={data?.active_scan?.scan_id}
-                returnScanId={data?.return_scan_id}
+                loadedProducts={data?.products || []}
               />
               <CategoryStats products={data?.products || []} />
               <RecentActivity trolleyId={selectedTrolley} latestDetection={latestDetection} />

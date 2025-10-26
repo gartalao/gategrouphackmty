@@ -46,7 +46,7 @@ export function useWebSocket(onProductDetected: (event: ProductDetectedEvent) =>
     })
 
     newSocket.on('product_detected', (event: ProductDetectedEvent) => {
-      console.log('[Dashboard] Real product detected:', event)
+      console.log('[Dashboard] Product detected event:', event)
       callbackRef.current(event)
     })
 
