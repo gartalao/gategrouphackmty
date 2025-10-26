@@ -16,9 +16,10 @@ const geminiRequestTimestamps = [];
 const GEMINI_RPM_LIMIT = 120; // Premium plan: 120 requests por minuto
 const GEMINI_WINDOW_MS = 60000; // 1 minuto
 
-// Tracking de productos actualmente visibles en cada scan
+// Tracking de productos ya registrados en cada sesión (scan)
 // scanId -> Set([productId1, productId2, ...])
-const currentlyVisibleProducts = new Map();
+// Los productos permanecen en este Set durante TODA la sesión
+const alreadyRegisteredProducts = new Map();
 
 /**
  * Verify JWT token from handshake
@@ -82,62 +83,39 @@ function trackGeminiRequest() {
 }
 
 /**
- * Verifica si un producto es NUEVO en el frame actual
- * (no estaba visible en el frame anterior)
+ * Verifica si un producto YA FUE REGISTRADO en esta sesión
+ * Una vez registrado, permanece registrado hasta que termine el scan
  */
-function isNewProduct(scanId, productId) {
-  const visibleSet = currentlyVisibleProducts.get(scanId);
-  if (!visibleSet) {
-    return true; // Primera detección en este scan
+function isAlreadyRegistered(scanId, productId) {
+  const registeredSet = alreadyRegisteredProducts.get(scanId);
+  if (!registeredSet) {
+    return false; // Primera detección en este scan
   }
-  return !visibleSet.has(productId); // Nuevo si no estaba antes
+  return registeredSet.has(productId); // true si ya fue registrado
 }
 
 /**
- * Marca producto como actualmente visible
+ * Marca producto como YA REGISTRADO en esta sesión
+ * NO se remueve aunque desaparezca del frame
  */
-function markProductAsVisible(scanId, productId) {
-  let visibleSet = currentlyVisibleProducts.get(scanId);
-  if (!visibleSet) {
-    visibleSet = new Set();
-    currentlyVisibleProducts.set(scanId, visibleSet);
+function markAsRegistered(scanId, productId) {
+  let registeredSet = alreadyRegisteredProducts.get(scanId);
+  if (!registeredSet) {
+    registeredSet = new Set();
+    alreadyRegisteredProducts.set(scanId, registeredSet);
   }
-  visibleSet.add(productId);
+  registeredSet.add(productId);
+  console.log(`[WS] ✅ Producto ${productId} marcado como registrado en sesión ${scanId}`);
 }
 
 /**
- * Actualiza productos visibles basado en detección actual
- * Remueve los que ya no están presentes
+ * Limpia tracking de productos registrados al finalizar scan
  */
-function updateVisibleProducts(scanId, detectedProductIds) {
-  const visibleSet = currentlyVisibleProducts.get(scanId) || new Set();
-  
-  // Remover productos que ya no se detectan
-  const removedProducts = [];
-  for (const productId of visibleSet) {
-    if (!detectedProductIds.includes(productId)) {
-      removedProducts.push(productId);
-    }
-  }
-  
-  removedProducts.forEach(pid => visibleSet.delete(pid));
-  
-  if (removedProducts.length > 0) {
-    console.log(`[WS] 🗑️ Productos removidos del frame:`, removedProducts.length);
-  }
-  
-  // Agregar nuevos productos detectados
-  detectedProductIds.forEach(pid => visibleSet.add(pid));
-  
-  currentlyVisibleProducts.set(scanId, visibleSet);
-}
-
-/**
- * Limpia tracking de productos visibles al finalizar scan
- */
-function cleanupVisibleProducts(scanId) {
-  currentlyVisibleProducts.delete(scanId);
-  console.log(`[WS] 🧹 Tracking de productos visibles limpiado para scan ${scanId}`);
+function cleanupRegisteredProducts(scanId) {
+  const registeredSet = alreadyRegisteredProducts.get(scanId);
+  const count = registeredSet ? registeredSet.size : 0;
+  alreadyRegisteredProducts.delete(scanId);
+  console.log(`[WS] 🧹 Tracking limpiado para scan ${scanId} (${count} productos únicos registrados)`);
 }
 
 /**
@@ -317,10 +295,8 @@ function initializeVideoStream(io) {
 
         // Procesar MÚLTIPLES productos si all_items existe
         const itemsToProcess = result.all_items || [{name: result.product_name, confidence: result.confidence}];
-        console.log('[WS] 📦 Items detectados en frame actual:', itemsToProcess.length);
+        console.log('[WS] 📦 Items detectados en frame:', itemsToProcess.length);
 
-        // Identificar productIds detectados en este frame
-        const detectedProductIds = [];
         const newProductsToInsert = [];
 
         // Mapear nombres a productos del catálogo
@@ -331,18 +307,18 @@ function initializeVideoStream(io) {
           );
           
           if (product) {
-            detectedProductIds.push(product.productId);
-            
-            // Verificar si es NUEVO (no estaba visible antes)
-            if (isNewProduct(scanId, product.productId)) {
-              newProductsToInsert.push({
-                product,
-                confidence: item.confidence || result.confidence || 0.9,
-                box: item.box || result.box_2d || null,
-              });
-            } else {
-              console.log(`[WS] ♻️ ${product.name} ya está visible - NO se registra de nuevo`);
+            // Verificar si YA FUE REGISTRADO en esta sesión
+            if (isAlreadyRegistered(scanId, product.productId)) {
+              console.log(`[WS] ⏭️ ${product.name} ya fue registrado en esta sesión - Se omite`);
+              continue; // Saltar este producto
             }
+            
+            // Es NUEVO para esta sesión, agregarlo a la lista
+            newProductsToInsert.push({
+              product,
+              confidence: item.confidence || result.confidence || 0.9,
+              box: item.box || result.box_2d || null,
+            });
           } else {
             console.warn(`[WS] ⚠️ Product not found in catalog: ${productName}`);
           }
@@ -350,14 +326,10 @@ function initializeVideoStream(io) {
 
         console.log(`[WS] 🆕 Productos NUEVOS a registrar: ${newProductsToInsert.length}/${itemsToProcess.length}`);
 
-        // Actualizar tracking: marcar productos actualmente detectados
-        // Los que desaparecieron se remueven automáticamente
-        updateVisibleProducts(scanId, detectedProductIds);
-
-        // Insertar SOLO productos NUEVOS en la base de datos
+        // Insertar SOLO productos que NO han sido registrados antes en esta sesión
         for (const {product, confidence, box} of newProductsToInsert) {
           try {
-            // Insert detection
+            // Insert detection en DB
             const detection = await prisma.productDetection.create({
               data: {
                 scanId,
@@ -372,6 +344,9 @@ function initializeVideoStream(io) {
               },
             });
 
+            // Marcar como registrado PERMANENTEMENTE en esta sesión
+            markAsRegistered(scanId, product.productId);
+
             // Emit to trolley room
             wsNamespace.to(`trolley_${scan.trolleyId}`).emit('product_detected', {
               event: 'product_detected',
@@ -385,7 +360,7 @@ function initializeVideoStream(io) {
             });
 
             console.log(
-              `[WS] ✅ Producto NUEVO registrado: ${product.name} (confidence: ${confidence.toFixed(2)})`
+              `[WS] ✅ Producto registrado por PRIMERA VEZ en sesión: ${product.name} (confidence: ${confidence.toFixed(2)})`
             );
           } catch (itemError) {
             console.error('[WS] ❌ Error registrando producto:', itemError.message);
@@ -409,8 +384,8 @@ function initializeVideoStream(io) {
           },
         });
 
-        // Limpiar tracking de productos visibles
-        cleanupVisibleProducts(scanId);
+        // Limpiar tracking de productos registrados
+        cleanupRegisteredProducts(scanId);
 
         console.log(`[WS] Scan ${scanId} ended`);
 

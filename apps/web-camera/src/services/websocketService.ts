@@ -65,6 +65,12 @@ export class WebSocketService {
 
       console.log('[WebSocket] 🎯 Socket.IO creado, esperando conexión...');
 
+      // Limpiar listeners previos si existen para evitar acumulación
+      this.socket.removeAllListeners('connect');
+      this.socket.removeAllListeners('disconnect');
+      this.socket.removeAllListeners('connect_error');
+      this.socket.removeAllListeners('product_detected');
+
       this.socket.on('connect', () => {
         console.log('[WebSocket] ✅ CONECTADO exitosamente a', fullUrl);
         console.log('[WebSocket] 🆔 Socket ID:', this.socket?.id);
@@ -83,12 +89,11 @@ export class WebSocketService {
       this.socket.on('connect_error', (error) => {
         console.error('[WebSocket] ❌ ERROR DE CONEXIÓN:', error);
         console.error('[WebSocket] 📝 Mensaje:', error.message);
-        console.error('[WebSocket] 📝 Tipo:', error.type);
         this.config.onError?.(error);
         reject(error);
       });
 
-      // Escuchar evento product_detected del backend
+      // Escuchar evento product_detected del backend (UN SOLO LISTENER)
       this.socket.on('product_detected', (event: ProductDetectedEvent) => {
         console.log('[WebSocket] 🎯 Producto detectado:', event.product_name);
         this.config.onProductDetected?.(event);
@@ -101,9 +106,17 @@ export class WebSocketService {
    */
   disconnect(): void {
     if (this.socket) {
+      console.log('[WebSocket] 🧹 Limpiando listeners y desconectando...');
+      // Limpiar todos los listeners antes de desconectar
+      this.socket.removeAllListeners('connect');
+      this.socket.removeAllListeners('disconnect');
+      this.socket.removeAllListeners('connect_error');
+      this.socket.removeAllListeners('product_detected');
+      
       this.socket.disconnect();
       this.socket = null;
       this.isConnected = false;
+      console.log('[WebSocket] ✅ Desconexión completa');
     }
   }
 

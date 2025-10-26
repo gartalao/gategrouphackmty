@@ -40,6 +40,7 @@ export const LiveRecording: React.FC<LiveRecordingProps> = ({
   const scanIdRef = useRef<number | null>(null);
   const frameCounterRef = useRef(0);
   const isRecordingRef = useRef(false); // Ref inmediata para evitar delays de React state
+  const detectedProductIdsRef = useRef<Set<number>>(new Set()); // Productos ya detectados en esta sesión
 
   // Configuración
   const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:3001';
@@ -122,6 +123,15 @@ export const LiveRecording: React.FC<LiveRecordingProps> = ({
   };
 
   const handleProductDetected = (event: ProductDetectedEvent) => {
+    // Verificar si ya fue detectado en esta sesión (deduplicación frontend)
+    if (detectedProductIdsRef.current.has(event.product_id)) {
+      console.log(`[LiveRecording] ⏭️ ${event.product_name} ya fue detectado en frontend - Ignorando duplicado`);
+      return; // No agregar duplicado
+    }
+
+    // Marcar como detectado
+    detectedProductIdsRef.current.add(event.product_id);
+
     const newDetection: Detection = {
       id: `${event.product_id}_${Date.now()}`,
       product_name: event.product_name,
@@ -203,13 +213,18 @@ export const LiveRecording: React.FC<LiveRecordingProps> = ({
     try {
       console.log('[LiveRecording] 🎬 handleStartRecording - INICIO');
       
-      // PRIMERO: Establecer estado de grabación (ref + state)
+      // PRIMERO: Limpiar productos detectados de sesión anterior
+      detectedProductIdsRef.current.clear();
+      setDetections([]); // Limpiar UI
+      console.log('[LiveRecording] 🧹 Productos detectados limpiados para nueva sesión');
+      
+      // SEGUNDO: Establecer estado de grabación (ref + state)
       isRecordingRef.current = true; // Actualización INMEDIATA con ref
       setIsRecording(true);
       setIsPaused(false);
       console.log('[LiveRecording] ✅ Estado actualizado: isRecordingRef=true, isRecording=true');
       
-      // SEGUNDO: SIEMPRE crear nueva sesión para evitar scans ended
+      // TERCERO: SIEMPRE crear nueva sesión para evitar scans ended
       console.log('[LiveRecording] 🔌 Creando nueva sesión...');
       await initializeSession();
       
@@ -277,6 +292,7 @@ export const LiveRecording: React.FC<LiveRecordingProps> = ({
     // Limpiar referencias
     scanIdRef.current = null;
     isRecordingRef.current = false;
+    detectedProductIdsRef.current.clear();
     
     console.log('[LiveRecording] ✅ Cleanup completado');
   };
